@@ -57,14 +57,14 @@ Flask security plugin offers some valid features that will aid with the creation
 
 
 #Project features 
-Let an admin to add,change and remove users.
-Let an admin add/revoke a public key/token. 
-Let a user register and provide a secure way to login onto the website.  
-Let a user upload content in form of audio recordings.  
-Let a user to stream content via the browser.  
-Let a user add, alter and share libraries and playlists.  
-Let a user search: artists, titles, albums, genre etc.  
-Let a user discover new music via a "radio station".
+    Let an admin to add,change and remove users.
+    Let an admin add/revoke a public key/token. 
+    Let a user register and provide a secure way to login onto the website.  
+    Let a user upload content in form of audio recordings.  
+    Let a user to stream content via the browser.  
+    Let a user add, alter and share libraries and playlists.  
+    Let a user search: artists, titles, albums, genre etc.  
+    Let a user discover new music via a "radio station".
 
 
  
