@@ -32,22 +32,40 @@ During the development phase we use the framework Flask.
 ###Flask
 Flask is a micro web framework written in Python and based on the Werkzeug toolkit and Jinja2 template engine. It is BSD licensed.
 ####Features
-Integrated support for unit testing  
-RESTful request dispatching  
-Uses Jinja2 templating   
-Support for secure cookies (client side sessions)  
-Google App Engine compatibility  
-Extensions available to enhance features desired 
+    Integrated support for unit testing  
+    RESTful request dispatching  
+    Uses Jinja2 templating   
+    Support for secure cookies (client side sessions)  
+    Google App Engine compatibility  
+    Extensions available to enhance features desired 
 
 The latest stable version of Flask is 0.11 as of June 2016
 
-#Features 
+##Flask-Security
+Flask security plugin offers some valid features that will aid with the creation of the site. 
+####Flask- security features
+    Session based authentication
+    Role management
+    Password encryption
+    Basic HTTP authentication
+    Token based authentication
+    Token based account activation (optional)
+    Token based password recovery / resetting (optional)
+    User registration (optional)
+    Login tracking (optional)
+    JSON/Ajax Support
+
+
+#Project features 
+Let an admin to add,change and remove users.
+Let an admin add/revoke a public key/token. 
 Let a user register and provide a secure way to login onto the website.  
 Let a user upload content in form of audio recordings.  
 Let a user to stream content via the browser.  
 Let a user add, alter and share libraries and playlists.  
 Let a user search: artists, titles, albums, genre etc.  
 Let a user discover new music via a "radio station".
+
 
  
 ---------------------------------------------------------
