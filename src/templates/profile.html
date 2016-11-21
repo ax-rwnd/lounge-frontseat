@@ -2,13 +2,19 @@
 
 <html>
 	<head>
-		<title>Home</title>
+		<title>
+		{% if pname == '' %}
+			My Profile
+		{% else %}
+			Profile for {{pname}}
+		{% endif %}
+		</title>
 		<link rel="stylesheet" href="/static/css/navbar.css" type="text/css"/>
 	</head>
 
 	<body>
 		{%include 'navbar.html'%}
-		This is your home now.
+		Welcome to your profile!
 	</body>
 
 

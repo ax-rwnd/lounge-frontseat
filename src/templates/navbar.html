@@ -1,0 +1,9 @@
+<div class="navbar">
+	<div class="navbuttoncontainer">
+		{% for item in nav.top %}
+		<div class="navbutton {{ 'active' if item.is_active else ''}}">
+		<a href="{{item.url}}">{{item.label}}</a>
+		</div>
+		{% endfor %}
+	</div>
+</div>
