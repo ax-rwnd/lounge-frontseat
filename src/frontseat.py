@@ -1,14 +1,18 @@
 #!/usr/bin/python
 import requests
 import json
+
 from config import Config
-from flask import Flask, render_template, request
+from seated import post_request
+
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_navigation import Navigation
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 
 config = Config()
 app = Flask(__name__)
 nav = Navigation(app)  # setup flask navigation
+app.secret_key = config.secret
 
 nav.Bar('top', [
     nav.Item('Home', 'index'),
@@ -98,16 +102,22 @@ class RegistrationForm(Form):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm(request.form)
-    if request.method == 'POST' and form.validate():
-        data = {"username": form.username.data, "email": form.email.data, "password": form.password.data}
-        url = config.api_url + "/api/register/" + data['username']
-        headers = {'Content-Type': 'application/json'}
-        r = requests.post(url, data = json.dumps(data), headers = headers)
 
-        flash('Thanks for registering')
-        return redirect(url_for('login'))
+    if request.method == 'POST' and form.validate():
+	endpoint = '/api/register'
+        data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
+
+	response = post_request(config, endpoint, data)
+	status = response.get('status', None)
+	assert(status != 'MISSING_PARAMS') #missing parameters
+
+	if status == 'USER_CREATED':
+		return redirect(url_for('profile'))
+	elif status == 'USER_EXISTS':
+		return "User already exists!"
+
     return render_template('register.html', form=form)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host=config.host, port=config.port, debug=config.debug)
