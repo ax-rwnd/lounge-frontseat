@@ -1,24 +1,24 @@
-<html>
-	<head>
-	<title>Lounge-o-Matic</title>
-	<link rel="stylesheet" href="/static/css/navbar.css" type="text/css"/>
-	</head>
-
-<body>
-
-	{% include 'navbar.html' %}
-
+{% extends "index.html" %}
+{% block content %}
 <h1>Lounge-o-Matic</h1>
-<p>Lounge-o-Matic is a streaming webservice for enjoying media with your friends (invite only). For the first sprint(s) of the project, the service will be limited to music, if time allows, the service should be extensible enough to provide video streaming as well.</p>
+<p>Lounge-o-Matic is a streaming webservice for enjoying media with your friends (invite only). For the first sprint(s)
+    of the project, the service will be limited to music, if time allows, the service should be extensible enough to
+    provide video streaming as well.</p>
 
-<p>A lounge is a point where users of the system meet. Here, there is a media player and a chat (maybe, if time allows) so that the users may socialize in real-time.</p>
+<p>A lounge is a point where users of the system meet. Here, there is a media player and a chat (maybe, if time allows)
+    so that the users may socialize in real-time.</p>
 
-<p>To allow people into your lounge, the owner sends an invitation to a friend by giving away a key. Other users connect to the same room using their own keys and are able to listen to the same media in a synchronized manner as long as their key is valid. The owner of the lounge should be able to revoke the key at any time, effectively kicking the user out.</p>
+<p>To allow people into your lounge, the owner sends an invitation to a friend by giving away a key. Other users connect
+    to the same room using their own keys and are able to listen to the same media in a synchronized manner as long as
+    their key is valid. The owner of the lounge should be able to revoke the key at any time, effectively kicking the
+    user out.</p>
 
-<p>Users connect to the frontend service to authenticate their visit against the backend. Then, they may visit their own lounge (or one of their friends' rooms) to play media or upload content.</p>
+<p>Users connect to the frontend service to authenticate their visit against the backend. Then, they may visit their own
+    lounge (or one of their friends' rooms) to play media or upload content.</p>
 
-<p>The upload process will work by giving the user a upload dialog to the backend, transcoding it to a lower bitrate and moving it to the user's storage. These files should then be exposed to the participants of the owner's lounge.</p>
+<p>The upload process will work by giving the user a upload dialog to the backend, transcoding it to a lower bitrate and
+    moving it to the user's storage. These files should then be exposed to the participants of the owner's lounge.</p>
 
-<p>See the <a href="https://github.com/ax-rwnd/lounge-frontseat">frontend</a> and the <a href="https://github.com/ax-rwnd/lounge-backseat">backend.</a></p>
-	</body>
-</html>
+<p>See the <a href="https://github.com/ax-rwnd/lounge-frontseat">frontend</a> and the <a
+        href="https://github.com/ax-rwnd/lounge-backseat">backend.</a></p>
+{% endblock %}

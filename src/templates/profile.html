@@ -1,21 +1,10 @@
-<!DOCTYPE HTML>
+{% extends "index.html" %}
+{% block content %}
+Welcome to your profile!
+{% if name %}
+  <h1>Hello {{ pname }}!</h1>
+{% else %}
+  <h1>Hello, World!</h1>
+{% endif %}
+{% endblock %}
 
-<html>
-	<head>
-		<title>
-		{% if pname == '' %}
-			My Profile
-		{% else %}
-			Profile for {{pname}}
-		{% endif %}
-		</title>
-		<link rel="stylesheet" href="/static/css/navbar.css" type="text/css"/>
-	</head>
-
-	<body>
-		{%include 'navbar.html'%}
-		Welcome to your profile!
-	</body>
-
-
-</html>
