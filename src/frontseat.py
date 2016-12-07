@@ -1,9 +1,11 @@
 #!/usr/bin/python
 import requests
 import json
+import os
 import seated
+from functools import wraps
 from config import Config
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 from flask_navigation import Navigation
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 
@@ -28,18 +30,34 @@ nav.Bar('top', [
 ])
 
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        data = {"username": session.get('user', ''), "session": session.get('session', '')}
+        status = seated.send_post(config, "/api/auth", data)
+
+        if status['status'] == "AUTH_OK":
+            return f(*args, **kwargs)
+        return redirect(url_for('login', next=request.url))
+
+    return decorated_function
+
+
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html', title='Home', icon='home')
 
 
 @app.route('/search')
+@login_required
 def search():
     return render_template('search.html', title='Search')
 
 
 @app.route('/browse')
 @app.route('/browse/<string:name>')
+@login_required
 def browse(name=''):
     return render_template('browse.html', title='Browse', lname=name)
 
@@ -54,6 +72,7 @@ class PlaylistItem:
 
 
 @app.route('/playlist/<int:user_id>')
+@login_required
 def playlist(user_id=''):
     ## Or, more likely, load items from your database with something like
     # items = ItemModel.query.all()
@@ -71,37 +90,44 @@ def playlist(user_id=''):
 
 
 @app.route('/radio')
+@login_required
 def radio():
     return render_template('radio.html', title='Radio')
 
 
 @app.route('/info')
+@login_required
 def info():
     return render_template('info.html', title='info')
 
 
 @app.route('/about')
+@login_required
 def about():
     return render_template('about.html', title='About us')
 
 
 @app.route('/contact')
+@login_required
 def contact():
     return render_template('contact.html', title='Contact us')
 
 
 @app.route('/profile')
 @app.route('/profile/<string:name>')
+@login_required
 def profile(name=''):
     return render_template('profile.html', pname=name)
 
 
 @app.route('/settings')
+@login_required
 def settings():
     return render_template('settings.html', title='Settings')
 
 
 @app.route('/signout')
+@login_required
 def signout():
     return render_template('signout.html', title='Sign out')
 
@@ -138,14 +164,45 @@ class LoginForm(Form):
 def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
+        session.pop('session', None)
         data = {"username": form.username.data, "secret": form.password.data}
+        hash = seated.send_post(config, "/api/login", data)
 
-        print seated.send_post(config, "/api/login", data)
-
+        if hash['status'] == 'LOGIN_OK':
+            session['session'] = hash['session']
+            session['user'] = request.form['username']
+            return redirect(url_for('protected'))
         # if data is valid, redirect to index.
         flash('Thanks for signing in')
-        return redirect(url_for('index'))
+        return redirect(url_for('login'))
     return render_template('login.html', form=form)
+
+
+@app.before_request
+def before_request():
+    g.session = None
+    print session
+    if 'session' in session:
+        g.session = session['session']
+
+
+@app.route('/protected')
+def protected():
+    if g.session:
+        return redirect(url_for('index'))
+
+
+@app.route('/getsession')
+def getsession():
+    if 'session' in session:
+        return session['session']
+    return 'Not logged in!'
+
+
+@app.route('/dropsession')
+def dropsession():
+    session.pop('session', None)
+    return redirect(url_for('login'))
 
 
 if __name__ == "__main__":
