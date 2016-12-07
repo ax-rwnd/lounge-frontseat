@@ -1,15 +1,16 @@
 #!/usr/bin/python
 import requests
 import json
+import seated
 from config import Config
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_navigation import Navigation
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 
 config = Config()
 app = Flask(__name__)
 nav = Navigation(app)  # setup flask navigation
-
+app.secret_key = 'supersecret'
 nav.Bar('top', [
     nav.Item('Home', 'index'),
     nav.Item('Search', 'search'),
@@ -43,9 +44,30 @@ def browse(name=''):
     return render_template('browse.html', title='Browse', lname=name)
 
 
-@app.route('/playlist')
-def playlist():
-    return render_template('playlist.html', title='Playlist')
+class PlaylistItem:
+    name = None
+    id = None
+
+    def __init__(self, name, id):
+        self.name = name
+        self.id = id
+
+
+@app.route('/playlist/<int:user_id>')
+def playlist(user_id=''):
+    ## Or, more likely, load items from your database with something like
+    # items = ItemModel.query.all()
+
+    items = seated.send_get(config, '/api/playlist/' + str(user_id))
+
+    if items['status'] == u'QUERY_OK':
+        pitems = []
+        for item in items['ids']:
+            pitems += [PlaylistItem(item[0], item[1])]
+    elif items['status'] == u'NO_PLAYLISTS':
+        pitems = None
+
+    return render_template('playlist.html', title='Playlist', items=pitems)
 
 
 @app.route('/radio')
@@ -99,14 +121,31 @@ class RegistrationForm(Form):
 def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
-        data = {"username": form.username.data, "email": form.email.data, "password": form.password.data}
-        url = config.api_url + "/api/register/" + data['username']
-        headers = {'Content-Type': 'application/json'}
-        r = requests.post(url, data = json.dumps(data), headers = headers)
+        data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
+        print seated.send_post(config, "/api/register", data)
 
         flash('Thanks for registering')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
+
+
+class LoginForm(Form):
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    password = PasswordField('Password', [validators.DataRequired()])
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        data = {"username": form.username.data, "secret": form.password.data}
+
+        print seated.send_post(config, "/api/login", data)
+
+        # if data is valid, redirect to index.
+        flash('Thanks for signing in')
+        return redirect(url_for('index'))
+    return render_template('login.html', form=form)
 
 
 if __name__ == "__main__":
