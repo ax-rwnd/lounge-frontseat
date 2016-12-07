@@ -1,4 +1,4 @@
-{% macro render_field(field, label_visible=true) -%}
+{% macro render_field(field, label_visible=true) %}
 
 <div class="form-group {% if field.errors %}has-error{% endif %} {{ kwargs.pop('class_', '') }}">
     {% if (field.type != 'HiddenField' and field.type !='CSRFTokenField') and label_visible %}
@@ -11,25 +11,28 @@
     {% endfor %}
     {% endif %}
 </div>
-{%- endmacro %}
+{% endmacro %}
 
-{% macro render_form(form, action_url='', action_text='Submit', class_='', btn_class='btn btn-default') -%}
+{% macro render_form(form, action_url='', action_text='Submit', class_='', btn_class='btn btn-default') %}
 
 <form method="POST" action="{{ action_url }}" role="form" class="{{ class_ }}">
     {{ form.hidden_tag() if form.hidden_tag }}
-    {% if caller %}
-    {{ caller() }}
-    {% else %}
-    {% for f in form %}
-    {% if f.type == 'username' %}
-    {{ render_field(form.username, placeholder='Input username', type='username') }}
-    {% elif f.type == 'password' %}
-    {{ render_field(form.password, label_visible=false, placeholder='Password', type='password') }}
-    {% else %}
-    {{ render_field(f) }}
-    {% endif %}
-    {% endfor %}
-    {% endif %}
+	{% if caller %}
+    		{{ caller}}
+	    {{ caller() }}
+	{% else %}
+		in else!
+		{% for f in form %}
+			{{f.type}}
+			{% if f.type == 'username' %}
+				{{ render_field(form.username, placeholder='Input username', type='username') }}
+			{% elif f.type == 'password' %}
+				{{ render_field(form.password, label_visible=false, placeholder='Password', type='password') }}
+			{% else %}
+				{{ render_field(f) }}
+			{% endif %}
+		{% endfor %}
+	{% endif %}
     <button type="submit" class="{{ btn_class }}">{{ action_text }}</button>
 </form>
-{%- endmacro %}
+{% endmacro %}
