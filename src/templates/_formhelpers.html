@@ -20,7 +20,6 @@
 	{% if caller %}
 	    {{ caller() }}
 	{% else %}
-		in else!
 		{% for f in form %}
 			{% if f.type == 'username' %}
 				{{ render_field(form.username, placeholder='Input username', type='username') }}
