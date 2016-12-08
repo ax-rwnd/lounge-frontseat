@@ -55,11 +55,24 @@ def before_request():
     if 'session' in session:
         g.session = session['session']
 
+@app.route('/protected')
+def protected():
+    if g.session:
+        return redirect(url_for('index'))
+
+
+@app.route('/getsession')
+def getsession():
+    if 'session' in session:
+        return session['session']
+    return 'Not logged in!'
+
 
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html', title='Home', icon='home')
+    """ Render home screen. """
+    return render_template('index.html', title='Home')
 
 
 @app.route('/search')
@@ -190,18 +203,6 @@ def login():
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
-
-@app.route('/protected')
-def protected():
-    if g.session:
-        return redirect(url_for('index'))
-
-
-@app.route('/getsession')
-def getsession():
-    if 'session' in session:
-        return session['session']
-    return 'Not logged in!'
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)
