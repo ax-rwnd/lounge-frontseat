@@ -12,7 +12,7 @@ from wtforms import Form, BooleanField, StringField, PasswordField, validators
 config = Config()
 app = Flask(__name__)
 nav = Navigation(app)  # setup flask navigation
-app.secret_key = 'supersecret'
+app.secret_key = config.secret_key
 nav.Bar('top', [
     nav.Item('Home', 'index'),
     nav.Item('Search', 'search'),
