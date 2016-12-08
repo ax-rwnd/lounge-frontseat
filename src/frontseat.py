@@ -140,10 +140,9 @@ def settings():
 
 
 @app.route('/signout')
-@login_required
 def signout():
-    return render_template('signout.html', title='Sign out')
-
+    session.pop('session', None)
+    return redirect(url_for('login'))
 
 class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
@@ -203,13 +202,6 @@ def getsession():
     if 'session' in session:
         return session['session']
     return 'Not logged in!'
-
-
-@app.route('/dropsession')
-def dropsession():
-    session.pop('session', None)
-    return redirect(url_for('login'))
-
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)
