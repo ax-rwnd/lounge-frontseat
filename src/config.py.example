@@ -2,16 +2,18 @@ from datetime import datetime
 
 class Config:
 	""" Defines settings for the frontend server. """
-	api_url = None		 #backend API address
-	secret_key = None	 #frontend session secret
+	api_url = None		#backend API address
+	secret_key = None	#frontend session secret
+	ssl_context = None	#ssl cert and key
 
-	host = None		 #listen address
-	port = None		 #listen port
+	host = None		#listen address
+	port = None		#listen port
 	
 	def __init__(self):
 		""" Defines your custom values in here, for instance. """
 		self.host = "0.0.0.0"
 		self.port = 8080
+		self.ssl_context = ('cert.pem', 'priv.key')
 
 		#set this to match your backseat setup
 		self.api_url = 'https://example-foundation.org/'

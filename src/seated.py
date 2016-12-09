@@ -2,6 +2,7 @@ import requests
 import json
 from flask import url_for
 
+debug_ca_path = '/etc/letsencrypt/live/fiskpinnar.campus.ltu.se/'
 
 def send_post(config, endpoint, data):
     '''sends a request to rest api
@@ -9,7 +10,7 @@ def send_post(config, endpoint, data):
     endpoint describes a resource'''
     url = config.api_url + endpoint
     headers = {'Content-Type': 'application/json'}
-    r = requests.post(url, data=json.dumps(data), headers=headers)
+    r = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
 
     return r.json()
 
@@ -19,7 +20,7 @@ def send_get(config, endpoint):
     configuration contain api url
     endpoint describes a resource'''
     url = config.api_url + endpoint
-    r = requests.get(url)
+    r = requests.get(url,verify=False)
     return r.json()
 
 
