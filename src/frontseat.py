@@ -125,13 +125,6 @@ def profile(name=''):
 def settings():
     return render_template('settings.html', title='Settings')
 
-
-@app.route('/signout')
-@login_required
-def signout():
-    return render_template('signout.html', title='Sign out')
-
-
 class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     email = StringField('Email Address', [validators.Length(min=6, max=35)])
@@ -158,6 +151,7 @@ def register():
 class LoginForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     password = PasswordField('Password', [validators.DataRequired()])
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -205,4 +199,5 @@ def dropsession():
 
 
 if __name__ == "__main__":
-    app.run(host=config.host, port=config.port, debug=True)
+    app.run(host="0.0.0.0", port=5002, debug=True)
+    # app.run(host=config.host, port=config.port, debug=True)
