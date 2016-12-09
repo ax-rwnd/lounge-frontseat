@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../static/css/simple-sidebar.css" rel="stylesheet">
-    <link href="../static/font-awesome-4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+    <link href="/static/font-awesome-4.3.0/css/font-awesome.min.css" rel="stylesheet">
     <title>Login</title>
 </head>
 
@@ -20,6 +20,7 @@
 		</div>
 		{{ macros.render_form(form, action_url=url_for('login'), action_text='Login',
 		class_='login-form') }}
+		Not a member yet? Click <a href="{{url_for('register')}}">here</a> to register!
 
 	    </div>
 	</div>

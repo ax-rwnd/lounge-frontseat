@@ -1,0 +1,22 @@
+from datetime import datetime
+
+class Config:
+	""" Defines settings for the frontend server. """
+	api_url = None		 #backend API address
+	secret_key = None	 #frontend session secret
+
+	host = None		 #listen address
+	port = None		 #listen port
+	
+	def __init__(self):
+		""" Defines your custom values in here, for instance. """
+		self.host = "0.0.0.0"
+		self.port = 8080
+
+		#set this to match your backseat setup
+		self.api_url = 'https://example-foundation.org/'
+
+		#this key is used to build the sessions for the front-end only
+		#by selecting a different key every time the server is restarted,
+		#using time for instance, the session should be invalidated
+		self.secret_key = 'totally-secret'+str(datetime.now().time())

@@ -9,10 +9,15 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_navigation import Navigation
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 
+#load config
 config = Config()
+
+#setup flask
 app = Flask(__name__)
-nav = Navigation(app)  # setup flask navigation
-app.secret_key = 'supersecret'
+app.secret_key = config.secret_key
+
+#setup flask navigation
+nav = Navigation(app)  
 nav.Bar('top', [
     nav.Item('Home', 'index'),
     nav.Item('Search', 'search'),
@@ -31,6 +36,7 @@ nav.Bar('top', [
 
 
 def login_required(f):
+    """ Checks that the user is logged in before proceeding to the requested page. """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         data = {"username": session.get('user', ''), "session": session.get('session', '')}
@@ -42,11 +48,31 @@ def login_required(f):
 
     return decorated_function
 
+@app.before_request
+def before_request():
+    """ Populate global session variable. """
+    g.session = None
+    if 'session' in session:
+        g.session = session['session']
+
+@app.route('/protected')
+def protected():
+    if g.session:
+        return redirect(url_for('index'))
+
+
+@app.route('/getsession')
+def getsession():
+    if 'session' in session:
+        return session['session']
+    return 'Not logged in!'
+
 
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html', title='Home', icon='home')
+    """ Render home screen. """
+    return render_template('index.html', title='Home')
 
 
 @app.route('/search')
@@ -125,6 +151,12 @@ def profile(name=''):
 def settings():
     return render_template('settings.html', title='Settings')
 
+
+@app.route('/signout')
+def signout():
+    session.pop('session', None)
+    return redirect(url_for('login'))
+
 class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     email = StringField('Email Address', [validators.Length(min=6, max=35)])
@@ -141,7 +173,7 @@ def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
-        print seated.send_post(config, "/api/register", data)
+        seated.send_post(config, "/api/register", data)
 
         flash('Thanks for registering')
         return redirect(url_for('login'))
@@ -149,14 +181,16 @@ def register():
 
 
 class LoginForm(Form):
+    """ Defines the fields required to log in. """
     username = StringField('Username', [validators.Length(min=4, max=25)])
     password = PasswordField('Password', [validators.DataRequired()])
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm(request.form)
+
     if request.method == 'POST' and form.validate():
+        # clear current session and retrieve new token from server
         session.pop('session', None)
         data = {"username": form.username.data, "secret": form.password.data}
         hash = seated.send_post(config, "/api/login", data)
@@ -165,39 +199,10 @@ def login():
             session['session'] = hash['session']
             session['user'] = request.form['username']
             return redirect(url_for('protected'))
-        # if data is valid, redirect to index.
-        flash('Thanks for signing in')
-        return redirect(url_for('login'))
-    return render_template('login.html', form=form)
-
-
-@app.before_request
-def before_request():
-    g.session = None
-    print session
-    if 'session' in session:
-        g.session = session['session']
-
-
-@app.route('/protected')
-def protected():
-    if g.session:
-        return redirect(url_for('index'))
-
-
-@app.route('/getsession')
-def getsession():
-    if 'session' in session:
-        return session['session']
-    return 'Not logged in!'
-
-
-@app.route('/dropsession')
-def dropsession():
-    session.pop('session', None)
-    return redirect(url_for('login'))
-
+        else:
+            return redirect(url_for('login'))
+    else:
+        return render_template('login.html', form=form)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002, debug=True)
-    # app.run(host=config.host, port=config.port, debug=True)
+    app.run(host=config.host, port=config.port, debug=True)
