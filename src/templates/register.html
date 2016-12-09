@@ -1,11 +1,30 @@
-{% from "_formhelpers.html" import render_field %}
-<form method=post action="/register">
-  <dl>
-    {{ render_field(form.username) }}
-    {{ render_field(form.email) }}
-    {{ render_field(form.password) }}
-    {{ render_field(form.confirm) }}
-    {{ render_field(form.accept_tos) }}
-  </dl>
-  <p><input type=submit value=Register>
-</form>
+{%import '_formhelpers.html' as macros %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+  <link href="/static/font-awesome-4.3.0/css/font-awesome.min.css" rel="stylesheet">
+  <title>Login</title>
+</head>
+
+<body>
+<div class="jumbotron">
+</div>
+<div class="row">
+  <div class="col-xs-12 col-md-3 col-sm-4 col-sm-offset-4 col-md-offset-4 col-lg-3 col-lg-offset-4">
+    <div class="login-message">
+      Welcome to Lounge-o-Matic, log in to proceed.
+    </div>
+    {{ macros.render_form(form, action_url=url_for('register'), action_text='register',
+    class_='register-form') }}
+
+  </div>
+</div>
+</body>
+</html>
+

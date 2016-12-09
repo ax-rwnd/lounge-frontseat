@@ -25,6 +25,8 @@
 				{{ render_field(form.username, placeholder='Input username', type='username') }}
 			{% elif f.type == 'password' %}
 				{{ render_field(form.password, label_visible=false, placeholder='Password', type='password') }}
+			{% elif f.type == 'confirm' %}
+			{{ render_field(form.password, label_visible=false, placeholder='Password', type='password') }}
 			{% else %}
 				{{ render_field(f) }}
 			{% endif %}

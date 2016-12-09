@@ -23,7 +23,6 @@ nav.Bar('top', [
     nav.Item('Search', 'search'),
     nav.Item('Browse', 'browse'),
     nav.Item('Playlist', 'playlist'),
-    nav.Item('Radio', 'radio'),
     nav.Item('Info', 'info', items=[
         nav.Item('About', 'about'),
         nav.Item('Contact', 'contact'),
@@ -113,13 +112,6 @@ def playlist(user_id=''):
         pitems = None
 
     return render_template('playlist.html', title='Playlist', items=pitems)
-
-
-@app.route('/radio')
-@login_required
-def radio():
-    return render_template('radio.html', title='Radio')
-
 
 @app.route('/info')
 @login_required
