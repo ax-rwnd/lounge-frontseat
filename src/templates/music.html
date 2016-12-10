@@ -6,6 +6,7 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
+
     </tr>
     </thead>
     <tbody>
@@ -16,11 +17,12 @@
 
     <tr>
         <td>{{item.id}}</td>
-        <td><a href="/music/{{item.id}}">{{item.name}}</a></td>
+        <td>{{item.name}}</td>
+
     </tr>
     {% endfor %}
     {% endif %}
     </tbody>
 </table>
-{% endblock %}
 
+{% endblock %}
