@@ -42,13 +42,19 @@
       });
       $('#submit').click(function(){
            $.ajax({
-                url:"{{api_url}}/api/test/0",
-                method:"POST",
-                data:$('#add_name').serialize(),
+                type:"POST",
+                url:"{{api_url}}/api/test/{{session['uid']}}",
+                crossDomain:true,
+                data: JSON.stringify({ "userName":"asd"}),
                 success:function(data)
                 {
                      alert(data);
                      $('#add_name')[0].reset();
+                },
+                dataType: "json",
+                error: function (responseData, textStatus, errorThrown)
+                {
+                alert(textStatus + errorThrown);
                 }
            });
       });
