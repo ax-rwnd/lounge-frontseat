@@ -43,7 +43,8 @@ def login_required(f):
 
         if status['status'] == "AUTH_OK":
             return f(*args, **kwargs)
-        return redirect(url_for('login', next=request.url))
+	else:
+            return redirect(url_for('login', next=request.url))
 
     return decorated_function
 
@@ -170,6 +171,7 @@ def profile():
 @app.route('/signout')
 def signout():
     session.pop('session', None)
+    flash("You have been logged out!")
     return redirect(url_for('login'))
 
 class RegistrationForm(Form):
@@ -188,9 +190,17 @@ def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
-        seated.send_post(config, "/api/register", data)
-
-        flash('Thanks for registering')
+        status = seated.send_post(config, "/api/register", data)
+        if status.get('status','') != u"USER_CREATED":
+		if status['status'] == u"USER_EXISTS":
+		    flash("That username was already taken, pick another one.")
+		elif status['status'] == u"USER_NAME_LENGTH":
+		    flash("Your email seems to be invalid.")
+		elif status['status'] == u"MISSING_PARAMS":
+		    flash("There was an internal server error!")
+		return redirect(url_for('register'))
+	elif status['status'] == u"USER_CREATED":
+	    flash('Thank you for registering')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
@@ -213,8 +223,10 @@ def login():
         if hash['status'] == 'LOGIN_OK':
             session['session'] = hash['session']
             session['user'] = request.form['username']
+            flash("You have been logged in!")
             return redirect(url_for('protected'))
         else:
+            flash("Login failed.")
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)

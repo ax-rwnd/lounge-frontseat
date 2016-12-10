@@ -44,15 +44,7 @@
 		<div class="container-fluid xyz">
 			<div class="row">
 				<div class="col-lg-12">
-					{% with messages = get_flashed_messages() %}
-						{% if messages %}
-							<ul class=flashes>
-							{% for message in messages %}
-								<li>{{message}}</li>
-							{% endfor %}
-							</ul>
-						{% endif %}
-					{% endwith %}
+					{% include 'alert.html' %}
 
 					{% block content %}
 					<h3>Welcome home, time to listen to some tunes!</h3>
