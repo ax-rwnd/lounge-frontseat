@@ -10,6 +10,8 @@ def send_post(config, endpoint, data):
     endpoint describes a resource'''
     url = config.api_url + endpoint
     headers = {'Content-Type': 'application/json'}
+    data['api_key'] = config.api_key
+    print "data:",data
     r = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
 
     return r.json()

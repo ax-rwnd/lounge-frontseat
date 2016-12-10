@@ -1,13 +1,15 @@
 #!/usr/bin/python
-import requests
-import json
-import os
+import requests, json, os, re
 import seated
+
 from functools import wraps
 from config import Config
 from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 from flask_navigation import Navigation
-from wtforms import Form, BooleanField, StringField, PasswordField, validators
+from flask_openid import OpenID
+from urllib2 import urlopen
+from urllib import urlencode
+from wtforms import Form, BooleanField, StringField, PasswordField, IntegerField, validators
 
 #load config
 config = Config()
@@ -15,6 +17,7 @@ config = Config()
 #setup flask
 app = Flask(__name__)
 app.secret_key = config.secret_key
+oid = OpenID(app)
 
 #setup flask navigation
 nav = Navigation(app)  
@@ -43,7 +46,8 @@ def login_required(f):
 
         if status['status'] == "AUTH_OK":
             return f(*args, **kwargs)
-        return redirect(url_for('login', next=request.url))
+	else:
+            return redirect(url_for('login', next=request.url))
 
     return decorated_function
 
@@ -141,22 +145,46 @@ def contact():
     return render_template('contact.html', title='Contact us')
 
 
-@app.route('/profile')
-@app.route('/profile/<string:name>')
+class ProfileForm(Form):
+    steamid = StringField('Steam ID')
+    oldpassword = PasswordField('Old Password')
+    password = PasswordField('New Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
+
+@app.route('/profile', methods=['GET','POST'])
 @login_required
-def profile(name=''):
-    return render_template('profile.html', pname=name)
+def profile():
+    """ View and update profile data. """
+    form = ProfileForm(request.form)
+    if request.method == 'POST' and form.validate():
+	    data = {'session':session.get('session', ''), 'username':session.get('user','')}
+
+	    #update password
+	    password = form.password.data
+	    if len(form.password.data)>0:
+		    data['newsecret'] = password
+		    data['secret'] = form.oldpassword.data
+
+            #update steanid
+            steamid = form.steamid.data
+            if len(steamid)>0:
+		    data['steamid'] = steamid
 
 
-@app.route('/settings')
-@login_required
-def settings():
-    return render_template('settings.html', title='Settings')
+            #make backseat update profile
+            seated.send_post(config, '/api/profile/'+session['user'], data)
+	    
+            return redirect(url_for('profile'))
 
+    return render_template('profile.html', form=form)
 
 @app.route('/signout')
 def signout():
     session.pop('session', None)
+    flash("You have been logged out!")
     return redirect(url_for('login'))
 
 class RegistrationForm(Form):
@@ -175,9 +203,17 @@ def register():
     form = RegistrationForm(request.form)
     if request.method == 'POST' and form.validate():
         data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
-        seated.send_post(config, "/api/register", data)
-
-        flash('Thanks for registering')
+        status = seated.send_post(config, "/api/register", data)
+        if status.get('status','') != u"USER_CREATED":
+		if status['status'] == u"USER_EXISTS":
+		    flash("That username was already taken, pick another one.")
+		elif status['status'] == u"USER_NAME_LENGTH":
+		    flash("Your email seems to be invalid.")
+		elif status['status'] == u"MISSING_PARAMS":
+		    flash("There was an internal server error!")
+		return redirect(url_for('register'))
+	elif status['status'] == u"USER_CREATED":
+	    flash('Thank you for registering')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
@@ -199,21 +235,58 @@ def login():
 
         if hash['status'] == 'LOGIN_OK':
             session['session'] = hash['session']
-            session['user'] = request.form['username']
+            session['user'] = hash['username']
+            flash("You have been logged in!")
             return redirect(url_for('protected'))
         else:
+            flash("Login failed.")
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
-
-
-
 
 @app.route('/add')
 def add():
     return render_template('add.html', api_url=config.api_url)
 
+# OpenID Part
+_steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
+def get_steam_userinfo(steam_id):
+	options = {
+		'key': config.openid_api_key,
+		'steamids': steam_id
+		}
+	url = 'http://api.steampowered.com/ISteamUser/' \
+	'GetPlayerSummaries/v0001/?%s' % urlencode(options)
 
+	rv = json.load(urlopen(url))
+	return rv['response']['players']['player'][0] or {}
+
+@app.route('/steamlogin')
+@oid.loginhandler
+def steam_login():
+    return oid.try_login('http://steamcommunity.com/openid')
+
+@oid.after_login
+def create_or_login(resp):
+	match = _steam_id_re.search(resp.identity_url)
+	data = {'steam_id':match.group(1)}
+
+	status = seated.send_post(config, '/api/login', data)
+	if status['status'] == u'MISSING_PARAMS':
+		flash("There was an internal error!")
+	elif status['status'] == u'LOGIN_FAILED':
+		flash("Invalid login.")
+	elif status['status'] == u'LOGIN_OK':
+		session['user'] = status['username']
+		session['session'] = status['session']
+		flash("Welcome, "+session['user']+"!")
+		return redirect(url_for('index'))
+	return redirect(url_for('login'))
+
+	#print "match",match
+	#steamdata = get_steam_userinfo(match)
+	#session['user_id'] = g.user.id
+	#flash('You are logged in as %s' % g.user.nickname)
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)

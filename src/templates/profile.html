@@ -1,10 +1,9 @@
+{%import '_formhelpers.html' as macros %}
+
 {% extends "index.html" %}
 {% block content %}
 Welcome to your profile!
-{% if name %}
-  <h1>Hello {{ pname }}!</h1>
-{% else %}
-  <h1>Hello, World!</h1>
-{% endif %}
+  {{ macros.render_form(form, action_url=url_for('profile'), action_text='Update',
+    class_='register-form') }}
 {% endblock %}
 
