@@ -4,12 +4,13 @@ from flask import url_for
 
 debug_ca_path = '/etc/letsencrypt/live/fiskpinnar.campus.ltu.se/'
 
-def send_post(config, endpoint, data):
+def send_post(config, endpoint, data, api_key=""):
     '''sends a request to rest api
     configuration contain api url
     endpoint describes a resource'''
     url = config.api_url + endpoint
     headers = {'Content-Type': 'application/json'}
+    data['api_key']=api_key
     r = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
 
     return r.json()

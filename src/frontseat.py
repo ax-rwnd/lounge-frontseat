@@ -7,7 +7,7 @@ from functools import wraps
 from config import Config
 from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 from flask_navigation import Navigation
-from wtforms import Form, BooleanField, StringField, PasswordField, validators
+from wtforms import Form, BooleanField, StringField, PasswordField, IntegerField, validators
 
 #load config
 config = Config()
@@ -131,18 +131,41 @@ def contact():
     return render_template('contact.html', title='Contact us')
 
 
-@app.route('/profile')
-@app.route('/profile/<string:name>')
+class ProfileForm(Form):
+    steamid = StringField('Steam ID')
+    oldpassword = PasswordField('Old Password')
+    password = PasswordField('New Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
+
+@app.route('/profile', methods=['GET','POST'])
 @login_required
-def profile(name=''):
-    return render_template('profile.html', pname=name)
+def profile():
+    """ View and update profile data. """
+    form = ProfileForm(request.form)
+    if request.method == 'POST' and form.validate():
+	    data = {'session':session.get('session', ''), 'username':session.get('user','')}
+
+	    #update password
+	    password = form.password.data
+	    if len(form.password.data)>0:
+		    data['newsecret'] = password
+		    data['secret'] = form.oldpassword.data
+
+            #update steanid
+            steamid = form.steamid.data
+            if len(steamid)>0:
+		    data['steamid'] = steamid
 
 
-@app.route('/settings')
-@login_required
-def settings():
-    return render_template('settings.html', title='Settings')
+            #make backseat update profile
+            seated.send_post(config, '/api/profile/'+session['user'], data)
+	    
+            return redirect(url_for('profile'))
 
+    return render_template('profile.html', form=form)
 
 @app.route('/signout')
 def signout():
