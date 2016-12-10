@@ -27,7 +27,8 @@
         </div>
         {{ macros.render_form(form, action_url=url_for('login'), action_text='Login',
         class_='login-form') }}
-        Not a member yet? Click <a href="{{url_for('register')}}">here</a> to register!
+	<p><a href="{{url_for('steam_login')}}">Login using OpenID and Steam!</a></p>
+        <p>Not a member yet? Click <a href="{{url_for('register')}}">here</a> to register!</p>
 
     </div>
 </div>
