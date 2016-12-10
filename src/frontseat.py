@@ -1,12 +1,14 @@
 #!/usr/bin/python
-import requests
-import json
-import os
+import requests, json, os, re
 import seated
+
 from functools import wraps
 from config import Config
 from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 from flask_navigation import Navigation
+from flask_openid import OpenID
+from urllib2 import urlopen
+from urllib import urlencode
 from wtforms import Form, BooleanField, StringField, PasswordField, IntegerField, validators
 
 #load config
@@ -15,6 +17,7 @@ config = Config()
 #setup flask
 app = Flask(__name__)
 app.secret_key = config.secret_key
+oid = OpenID(app)
 
 #setup flask navigation
 nav = Navigation(app)  
@@ -222,7 +225,7 @@ def login():
 
         if hash['status'] == 'LOGIN_OK':
             session['session'] = hash['session']
-            session['user'] = request.form['username']
+            session['user'] = hash['username']
             flash("You have been logged in!")
             return redirect(url_for('protected'))
         else:
@@ -230,6 +233,46 @@ def login():
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
+
+# OpenID Part
+_steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
+def get_steam_userinfo(steam_id):
+	options = {
+		'key': config.openid_api_key,
+		'steamids': steam_id
+		}
+	url = 'http://api.steampowered.com/ISteamUser/' \
+	'GetPlayerSummaries/v0001/?%s' % urlencode(options)
+
+	rv = json.load(urlopen(url))
+	return rv['response']['players']['player'][0] or {}
+
+@app.route('/steamlogin')
+@oid.loginhandler
+def steam_login():
+    return oid.try_login('http://steamcommunity.com/openid')
+
+@oid.after_login
+def create_or_login(resp):
+	match = _steam_id_re.search(resp.identity_url)
+	data = {'steam_id':match.group(1)}
+
+	status = seated.send_post(config, '/api/login', data)
+	if status['status'] == u'MISSING_PARAMS':
+		flash("There was an internal error!")
+	elif status['status'] == u'LOGIN_FAILED':
+		flash("Invalid login.")
+	elif status['status'] == u'LOGIN_OK':
+		session['user'] = status['username']
+		session['session'] = status['session']
+		flash("Welcome, "+session['user']+"!")
+		return redirect(url_for('index'))
+	return redirect(url_for('login'))
+
+	#print "match",match
+	#steamdata = get_steam_userinfo(match)
+	#session['user_id'] = g.user.id
+	#flash('You are logged in as %s' % g.user.nickname)
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)
