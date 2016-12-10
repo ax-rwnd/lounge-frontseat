@@ -122,7 +122,7 @@ def music(user_id=''):
     elif items['status'] == u'TRACK_UNKNOWN':
         pitems = None
 
-    return render_template('playlist.html', title='Playlist', items=pitems)
+    return render_template('music.html', title='Playlist', items=pitems)
 @app.route('/info')
 @login_required
 def info():
