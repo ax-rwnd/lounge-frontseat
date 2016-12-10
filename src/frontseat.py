@@ -25,7 +25,7 @@ nav.Bar('top', [
     nav.Item('Home', 'index'),
     nav.Item('Search', 'search'),
     nav.Item('Browse', 'browse'),
-    nav.Item('Playlist', 'playlist'),
+    nav.Item('Playlists', 'playlist'),
     nav.Item('Info', 'info', items=[
         nav.Item('About', 'about'),
         nav.Item('Contact', 'contact'),
@@ -99,24 +99,34 @@ class PlaylistItem:
         self.name = name
         self.id = id
 
-
 @app.route('/playlist/<int:user_id>')
 @login_required
 def playlist(user_id=''):
-    ## Or, more likely, load items from your database with something like
-    # items = ItemModel.query.all()
 
     items = seated.send_get(config, '/api/playlist/' + str(user_id))
 
     if items['status'] == u'QUERY_OK':
         pitems = []
         for item in items['ids']:
-            pitems += [PlaylistItem(item[0], item[1])]
+            pitems += [PlaylistItem(item[1], item[0])]
     elif items['status'] == u'NO_PLAYLISTS':
         pitems = None
+    return render_template('playlists.html', title='Playlist', items=pitems)
 
-    return render_template('playlist.html', title='Playlist', items=pitems)
+@app.route('/music/<int:user_id>')
+@login_required
+def music(user_id=''):
 
+    items = seated.send_get(config, '/api/music/' + str(user_id))
+
+    if items['status'] == u'TRACK_FOUND':
+        pitems = []
+        for item in items['ids']:
+            pitems += [PlaylistItem(item[0], item[1])]
+    elif items['status'] == u'TRACK_UNKNOWN':
+        pitems = None
+
+    return render_template('music.html', title='Playlist', items=pitems)
 @app.route('/info')
 @login_required
 def info():
@@ -233,6 +243,10 @@ def login():
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
+
+@app.route('/add')
+def add():
+    return render_template('add.html', api_url=config.api_url)
 
 # OpenID Part
 _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
