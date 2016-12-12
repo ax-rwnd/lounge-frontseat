@@ -11,16 +11,16 @@ from urllib2 import urlopen
 from urllib import urlencode
 from wtforms import Form, BooleanField, StringField, PasswordField, IntegerField, validators
 
-#load config
+# load config
 config = Config()
 
-#setup flask
+# setup flask
 app = Flask(__name__)
 app.secret_key = config.secret_key
 oid = OpenID(app)
 
-#setup flask navigation
-nav = Navigation(app)  
+# setup flask navigation
+nav = Navigation(app)
 nav.Bar('top', [
     nav.Item('Home', 'index'),
     nav.Item('Search', 'search'),
@@ -39,6 +39,7 @@ nav.Bar('top', [
 
 def login_required(f):
     """ Checks that the user is logged in before proceeding to the requested page. """
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         data = {"username": session.get('user', ''), "session": session.get('session', '')}
@@ -46,10 +47,11 @@ def login_required(f):
 
         if status['status'] == "AUTH_OK":
             return f(*args, **kwargs)
-	else:
+        else:
             return redirect(url_for('login', next=request.url))
 
     return decorated_function
+
 
 @app.before_request
 def before_request():
@@ -57,6 +59,7 @@ def before_request():
     g.session = None
     if 'session' in session:
         g.session = session['session']
+
 
 @app.route('/protected')
 def protected():
@@ -99,14 +102,11 @@ class PlaylistItem:
         self.name = name
         self.id = id
 
-@app.route('/playlist/')
-@app.route('/playlist/<string:username>')
+@app.route('/playlist')
 @login_required
-def playlist(username=''):
-    if username=='':
-	    username = session['user']
-
-    items = seated.send_get(config, '/api/playlist/' + username)
+def playlist():
+    data = {'username':session['user'], 'session':session['session'], 'title':'N/A', 'action':'GET'}
+    items = seated.send_post(config, '/api/playlist', data)
 
     if items['status'] == u'QUERY_OK':
         pitems = []
@@ -114,27 +114,38 @@ def playlist(username=''):
             pitems += [PlaylistItem(item[1], item[0])]
     elif items['status'] == u'NO_PLAYLISTS':
         pitems = None
-    return render_template('playlists.html', title='Playlist', items=pitems)
+    return render_template('playlists.html', title='Playlist',api_url=config.api_url, items=pitems, session=session)
 
-@app.route('/music/<string:targetname>/<int:playlist_id>')
+class MusicItem:
+    path = None
+    name = None
+    id = None
+
+    def __init__(self, path, name, id):
+    	self.path = path
+        self.name = name
+        self.id = id
+
+@app.route('/music/<int:playlist_id>')
 @login_required
-def music(targetname='',playlist_id=None):
-    if targetname=='':
-	    targetname = session['user']
+def music(playlist_id=None):
     if playlist_id == None:
-	    return redirect(url_for('playlist'))
+        return redirect(url_for('playlist'))
     
-    data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetname':targetname, 'targetlist':playlist_id}
-    status = send_post(config, '/api/music', data)
+    data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id}
+    status = seated.send_post(config, '/api/music/0', data)
     if status['status'] == u'MUSIC_LIST':
-	    print status['tracks']
-	    items = status['tracks']
+        items = status['tracks']
+	mitems = []
+        for item in items:
+            mitems += [MusicItem(item[2], item[1], item[0])]
+        return render_template('music.html', title='Playlist', items=mitems)
+    elif status['status'] == u'AUTH_FAIL':
+        flash("Your session is invalid, please login.")
+	return redirect(url_for('login'))
     else:
-        items = None
-
-    return render_template('music.html', title='Playlist', items=pitems)
-
-
+        flash("Something went wrong!")
+        return redirect(url_for('playlist'))
 
     #items = seated.send_get(config, '/api/music/' + str(user_id))
     #if items['status'] == u'TRACK_FOUND':
@@ -171,38 +182,40 @@ class ProfileForm(Form):
     ])
     confirm = PasswordField('Repeat Password')
 
-@app.route('/profile', methods=['GET','POST'])
+
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     """ View and update profile data. """
     form = ProfileForm(request.form)
     if request.method == 'POST' and form.validate():
-	    data = {'session':session.get('session', ''), 'username':session.get('user','')}
+        data = {'session': session.get('session', ''), 'username': session.get('user', '')}
 
-	    #update password
-	    password = form.password.data
-	    if len(form.password.data)>0:
-		    data['newsecret'] = password
-		    data['secret'] = form.oldpassword.data
+        # update password
+        password = form.password.data
+        if len(form.password.data) > 0:
+            data['newsecret'] = password
+            data['secret'] = form.oldpassword.data
 
-            #update steanid
-            steamid = form.steamid.data
-            if len(steamid)>0:
-		    data['steamid'] = steamid
+            # update steanid
+        steamid = form.steamid.data
+        if len(steamid) > 0:
+            data['steamid'] = steamid
 
+            # make backseat update profile
+        seated.send_post(config, '/api/profile/' + session['user'], data)
 
-            #make backseat update profile
-            seated.send_post(config, '/api/profile/'+session['user'], data)
-	    
-            return redirect(url_for('profile'))
+        return redirect(url_for('profile'))
 
     return render_template('profile.html', form=form)
+
 
 @app.route('/signout')
 def signout():
     session.pop('session', None)
     flash("You have been logged out!")
     return redirect(url_for('login'))
+
 
 class RegistrationForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
@@ -221,16 +234,16 @@ def register():
     if request.method == 'POST' and form.validate():
         data = {"username": form.username.data, "email": form.email.data, "secret": form.password.data}
         status = seated.send_post(config, "/api/register", data)
-        if status.get('status','') != u"USER_CREATED":
-		if status['status'] == u"USER_EXISTS":
-		    flash("That username was already taken, pick another one.")
-		elif status['status'] == u"USER_NAME_LENGTH":
-		    flash("Your email seems to be invalid.")
-		elif status['status'] == u"MISSING_PARAMS":
-		    flash("There was an internal server error!")
-		return redirect(url_for('register'))
-	elif status['status'] == u"USER_CREATED":
-	    flash('Thank you for registering')
+        if status.get('status', '') != u"USER_CREATED":
+            if status['status'] == u"USER_EXISTS":
+                flash("That username was already taken, pick another one.")
+            elif status['status'] == u"USER_NAME_LENGTH":
+                flash("Your email seems to be invalid.")
+            elif status['status'] == u"MISSING_PARAMS":
+                flash("There was an internal server error!")
+            return redirect(url_for('register'))
+        elif status['status'] == u"USER_CREATED":
+            flash('Thank you for registering')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
@@ -239,6 +252,7 @@ class LoginForm(Form):
     """ Defines the fields required to log in. """
     username = StringField('Username', [validators.Length(min=4, max=25)])
     password = PasswordField('Password', [validators.DataRequired()])
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -253,6 +267,7 @@ def login():
         if hash['status'] == 'LOGIN_OK':
             session['session'] = hash['session']
             session['user'] = hash['username']
+            session['uid'] = hash['uid']
             flash("You have been logged in!")
             return redirect(url_for('protected'))
         else:
@@ -261,49 +276,58 @@ def login():
     else:
         return render_template('login.html', form=form)
 
-@app.route('/add')
+
+
+@app.route('/add/', methods=['GET', 'POST'])
 def add():
-    return render_template('add.html', api_url=config.api_url)
+    print request.headers
+    return render_template('add.html', api_url=config.api_url, session=session)
+
 
 # OpenID Part
 _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
-def get_steam_userinfo(steam_id):
-	options = {
-		'key': config.openid_api_key,
-		'steamids': steam_id
-		}
-	url = 'http://api.steampowered.com/ISteamUser/' \
-	'GetPlayerSummaries/v0001/?%s' % urlencode(options)
 
-	rv = json.load(urlopen(url))
-	return rv['response']['players']['player'][0] or {}
+
+def get_steam_userinfo(steam_id):
+    options = {
+        'key': config.openid_api_key,
+        'steamids': steam_id
+    }
+    url = 'http://api.steampowered.com/ISteamUser/' \
+          'GetPlayerSummaries/v0001/?%s' % urlencode(options)
+
+    rv = json.load(urlopen(url))
+    return rv['response']['players']['player'][0] or {}
+
 
 @app.route('/steamlogin')
 @oid.loginhandler
 def steam_login():
     return oid.try_login('http://steamcommunity.com/openid')
 
+
 @oid.after_login
 def create_or_login(resp):
-	match = _steam_id_re.search(resp.identity_url)
-	data = {'steam_id':match.group(1)}
+    match = _steam_id_re.search(resp.identity_url)
+    data = {'steam_id': match.group(1)}
 
-	status = seated.send_post(config, '/api/login', data)
-	if status['status'] == u'MISSING_PARAMS':
-		flash("There was an internal error!")
-	elif status['status'] == u'LOGIN_FAILED':
-		flash("Invalid login.")
-	elif status['status'] == u'LOGIN_OK':
-		session['user'] = status['username']
-		session['session'] = status['session']
-		flash("Welcome, "+session['user']+"!")
-		return redirect(url_for('index'))
-	return redirect(url_for('login'))
+    status = seated.send_post(config, '/api/login', data)
+    if status['status'] == u'MISSING_PARAMS':
+        flash("There was an internal error!")
+    elif status['status'] == u'LOGIN_FAILED':
+        flash("Invalid login.")
+    elif status['status'] == u'LOGIN_OK':
+        session['user'] = status['username']
+        session['session'] = status['session']
+        flash("Welcome, " + session['user'] + "!")
+        return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
-	#print "match",match
-	#steamdata = get_steam_userinfo(match)
-	#session['user_id'] = g.user.id
-	#flash('You are logged in as %s' % g.user.nickname)
+
+# print "match",match
+# steamdata = get_steam_userinfo(match)
+# session['user_id'] = g.user.id
+# flash('You are logged in as %s' % g.user.nickname)
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)
