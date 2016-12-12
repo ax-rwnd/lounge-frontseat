@@ -4,9 +4,10 @@ import seated
 
 from functools import wraps
 from config import Config
-from flask import Flask, render_template, request, redirect, url_for, flash, session, g
+from flask import Flask, Request, render_template, request, redirect, url_for, flash, session, g
 from flask_navigation import Navigation
 from flask_openid import OpenID
+from werkzeug import secure_filename
 from urllib2 import urlopen
 from urllib import urlencode
 from wtforms import Form, BooleanField, StringField, PasswordField, IntegerField, validators
@@ -126,20 +127,41 @@ class MusicItem:
         self.name = name
         self.id = id
 
+@app.route('/upload/<int:playlist_id>', methods=['POST'])
+@login_required
+def upload(playlist_id):
+
+	if not os.path.isdir(config.tmp_folder):
+		os.makedirs(config.tmp_folder)
+
+	print request.files.getlist("file")
+	for f in request.files.getlist("file"):
+		path = os.path.join(config.tmp_folder,secure_filename(f.filename))
+		f.save(path)
+		files = {'username':session['user'], 'session':session['session'], 'playlist_id':str(playlist_id), f.filename:open(path,"rb")}
+		url = os.path.join(config.showtime_url,"upload")
+		r = requests.post(url, files=files)
+		if (r.text == 'UPLOAD_OK'):
+			flash("Your file was uploaded!")
+		else:
+			flash ("Upload failed.")
+	return redirect(url_for('music', playlist_id=playlist_id))
+
 @app.route('/music/<int:playlist_id>')
 @login_required
 def music(playlist_id=None):
     if playlist_id == None:
         return redirect(url_for('playlist'))
     
-    data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id}
+    data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id, 'playlist_id':str(playlist_id)}
     status = seated.send_post(config, '/api/music/0', data)
+    print "STATUS", status['status'],status['status'] == u'MUSIC_LIST'
     if status['status'] == u'MUSIC_LIST':
         items = status['tracks']
 	mitems = []
         for item in items:
             mitems += [MusicItem(item[2], item[1], item[0])]
-        return render_template('music.html', title='Playlist', items=mitems)
+        return render_template('music.html', title='Playlist', config=config, playlist=playlist_id,  items=mitems)
     elif status['status'] == u'AUTH_FAIL':
         flash("Your session is invalid, please login.")
 	return redirect(url_for('login'))
