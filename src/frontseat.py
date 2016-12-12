@@ -263,6 +263,8 @@ def register():
                 flash("Your email seems to be invalid.")
             elif status['status'] == u"MISSING_PARAMS":
                 flash("There was an internal server error!")
+            elif status['status'] == u"INVALID_NAME":
+                flash("Your name contained some illegal characters.")
             return redirect(url_for('register'))
         elif status['status'] == u"USER_CREATED":
             flash('Thank you for registering')
