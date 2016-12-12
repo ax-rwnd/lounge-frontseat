@@ -99,11 +99,14 @@ class PlaylistItem:
         self.name = name
         self.id = id
 
-@app.route('/playlist/<int:user_id>')
+@app.route('/playlist/')
+@app.route('/playlist/<string:username>')
 @login_required
-def playlist(user_id=''):
+def playlist(username=''):
+    if username=='':
+	    username = session['user']
 
-    items = seated.send_get(config, '/api/playlist/' + str(user_id))
+    items = seated.send_get(config, '/api/playlist/' + username)
 
     if items['status'] == u'QUERY_OK':
         pitems = []
@@ -113,20 +116,34 @@ def playlist(user_id=''):
         pitems = None
     return render_template('playlists.html', title='Playlist', items=pitems)
 
-@app.route('/music/<int:user_id>')
+@app.route('/music/<string:targetname>/<int:playlist_id>')
 @login_required
-def music(user_id=''):
-
-    items = seated.send_get(config, '/api/music/' + str(user_id))
-
-    if items['status'] == u'TRACK_FOUND':
-        pitems = []
-        for item in items['ids']:
-            pitems += [PlaylistItem(item[0], item[1])]
-    elif items['status'] == u'TRACK_UNKNOWN':
-        pitems = None
+def music(targetname='',playlist_id=None):
+    if targetname=='':
+	    targetname = session['user']
+    if playlist_id == None:
+	    return redirect(url_for('playlist'))
+    
+    data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetname':targetname, 'targetlist':playlist_id}
+    status = send_post(config, '/api/music', data)
+    if status['status'] == u'MUSIC_LIST':
+	    print status['tracks']
+	    items = status['tracks']
+    else:
+        items = None
 
     return render_template('music.html', title='Playlist', items=pitems)
+
+
+
+    #items = seated.send_get(config, '/api/music/' + str(user_id))
+    #if items['status'] == u'TRACK_FOUND':
+    #    pitems = []
+    #    for item in items['ids']:
+    #        pitems += [PlaylistItem(item[0], item[1])]
+    #elif items['status'] == u'TRACK_UNKNOWN':
+    #    pitems = None
+
 @app.route('/info')
 @login_required
 def info():
