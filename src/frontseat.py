@@ -48,8 +48,9 @@ def login_required(f):
 
         if status['status'] == "AUTH_OK":
             return f(*args, **kwargs)
-        else:
-            return redirect(url_for('login', next=request.url))
+	elif status['status'] == 'CONNECTION_FAILED':
+	    flash("The service is currently unavailable, please try again later.", 'warning')
+        return redirect(url_for('login'))
 
     return decorated_function
 
@@ -62,25 +63,20 @@ def before_request():
         g.session = session['session']
 
 
-@app.route('/protected')
-def protected():
-    if g.session:
-        return redirect(url_for('index'))
-
-
-@app.route('/getsession')
-def getsession():
-    if 'session' in session:
-        return session['session']
-    return 'Not logged in!'
-
-
 @app.route('/')
 @login_required
 def index():
     """ Render home screen. """
     return render_template('index.html', title='Home')
 
+
+@app.route('/lounge')
+@app.route('/lounge/<string:username>')
+def lounge (username=''):
+    if username == '':
+        username = session['user']
+
+    return render_template('lounge.html', config=config, session=session)
 
 @app.route('/search')
 @login_required
@@ -96,7 +92,6 @@ def browse(username=''):
         username = session['user']
     data = {'username':username, 'session':session['session'], 'action':'GET', 'playlist_id':'*'}
     status = seated.send_post(config, '/api/music/0', data)
-    print "status",status
     if status['status'] == u'MUSIC_LIST':
 	    items = status['tracks']
 	    mitems = []
@@ -121,6 +116,7 @@ class PlaylistItem:
 def playlist():
     data = {'username':session['user'], 'session':session['session'], 'title':'N/A', 'action':'GET'}
     items = seated.send_post(config, '/api/playlist', data)
+
     if items['status'] == u'QUERY_OK':
         pitems = []
         for item in items['ids']:
@@ -146,7 +142,6 @@ def upload(playlist_id):
 	if not os.path.isdir(config.tmp_folder):
 		os.makedirs(config.tmp_folder)
 
-	print request.files.getlist("file")
 	for f in request.files.getlist("file"):
 		path = os.path.join(config.tmp_folder,secure_filename(f.filename))
 		f.save(path)
@@ -167,8 +162,7 @@ def music(playlist_id=None):
     
     data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id, 'playlist_id':str(playlist_id)}
     status = seated.send_post(config, '/api/music/0', data)
-    print "STATUS", status['status'],status['status'] == 'MUSIC_LIST'
-    if status['status'] == 'MUSIC_LIST':
+    if status['status'] == u'MUSIC_LIST':
         items = status['tracks']
 	mitems = []
         for item in items:
@@ -231,7 +225,7 @@ def profile():
             data['newsecret'] = password
             data['secret'] = form.oldpassword.data
 
-            # update steanid
+        # update steamid
         steamid = form.steamid.data
         if len(steamid) > 0:
             data['steamid'] = steamid
@@ -304,18 +298,19 @@ def login():
             session['session'] = hash['session']
             session['user'] = hash['username']
             session['uid'] = hash['uid']
-            flash("You have been logged in!",'success')
-            return redirect(url_for('protected'))
+            flash("Welcome, " + session['user'] + "!",'success')
+            return redirect(url_for('index'))
+	elif hash['status'] == 'CONNECTION_FAILED':
+	    flash("The service is unavailable, please try again later.", "warning")
         else:
             flash("Login failed.",'danger')
-            return redirect(url_for('login'))
+        return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
 
 
 # OpenID Part
 _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
-
 
 def get_steam_userinfo(steam_id):
     options = {
@@ -328,12 +323,10 @@ def get_steam_userinfo(steam_id):
     rv = json.load(urlopen(url))
     return rv['response']['players']['player'][0] or {}
 
-
 @app.route('/steamlogin')
 @oid.loginhandler
 def steam_login():
     return oid.try_login('http://steamcommunity.com/openid')
-
 
 @oid.after_login
 def create_or_login(resp):
@@ -347,16 +340,11 @@ def create_or_login(resp):
         flash("Invalid login.", 'danger')
     elif status['status'] == u'LOGIN_OK':
         session['user'] = status['username']
+        session['uid'] = status['uid']
         session['session'] = status['session']
         flash("Welcome, " + session['user'] + "!",'success')
         return redirect(url_for('index'))
     return redirect(url_for('login'))
-
-
-# print "match",match
-# steamdata = get_steam_userinfo(match)
-# session['user_id'] = g.user.id
-# flash('You are logged in as %s' % g.user.nickname)
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)

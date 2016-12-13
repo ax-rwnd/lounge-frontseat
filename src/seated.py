@@ -11,10 +11,11 @@ def send_post(config, endpoint, data):
     url = config.api_url + endpoint
     headers = {'Content-Type': 'application/json'}
     data['api_key'] = config.api_key
-    r = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
-
-    return r.json()
-
+    try:
+        r = requests.post(url, data=json.dumps(data), headers=headers, verify=False)
+        return r.json()
+    except requests.exceptions.ConnectionError:
+        return {'status':'CONNECTION_FAILED'}
 
 def send_get(config, endpoint):
     '''send a request to rest api
