@@ -76,7 +76,7 @@ def lounge (username=''):
     if username == '':
         username = session['user']
 
-    return render_template('lounge.html')
+    return render_template('lounge.html', config=config, session=session)
 
 @app.route('/search')
 @login_required

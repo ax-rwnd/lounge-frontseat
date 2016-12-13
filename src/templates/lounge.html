@@ -6,5 +6,97 @@
 	Your browser cannot use the HTML5 audio element!
 </audio>
 
-{% endblock %}
+<div class="dropdown">
+	<button class="btn btn-primary dropdown-toggle" id="playlists" type="button" data-toggle="dropdown">Dropdown <span class="caret"></span></button>
+	  <ul class="dropdown-menu">
+	</ul>
+</div>
 
+<div class="container">
+	<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Track</th>
+		</tr>
+	</thead>
+	<tbody id="tracks-available">
+		<tr>
+		<td>Wololow</td>
+		</tr>
+	</tbody>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+function setSong(song) {
+	var audio = document.getElementById('audio');
+	var source = document.getElementById('oggSource');
+	source.src = "{{config.showtime_url}}/ogg/"+song;
+	audio.load();
+	audio.play();
+}
+
+$(document).ready(function(){
+    $('#playlists').click(function(){
+        $.ajax({
+            url: '{{config.api_url}}/api/playlist',
+            type: "POST",
+            crossDomain: true,
+            data: JSON.stringify({
+                title: "N/A",
+                session: "{{session['session']}}",
+                username: "{{session['user']}}",
+                action: "GET"
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (response) {
+		if (response.status == 'QUERY_OK') {
+			$('.dropdown-item').remove();
+			for (var i = 0; i<response.ids.length; i++) {
+				$('.dropdown-menu').append('<li><a id="'+response.ids[i][0]+'" class="dropdown-item" onclick="" href="#">'+response.ids[i][1]+'</a></li>');
+			}
+
+			//Select a new playlist
+			$('.dropdown-item').click(function() {
+				var that = this;
+				$.ajax({
+				    url: '{{config.api_url}}/api/music/0',
+				    type: "POST",
+				    crossDomain: true,
+				    data: JSON.stringify({
+					session: "{{session['session']}}",
+					username: "{{session['user']}}",
+					action: 'GET', 
+					playlist_id: that.id
+				    }),
+				    contentType: "application/json",
+				    dataType: "json",
+				    success: function (response) {
+					    for (var i = 0; i<response.tracks.length; i++) {
+						    var uri = encodeURI(response.tracks[i][2]);
+						    var name = response.tracks[i][1];
+						    alert(name);
+						    $('#tracks-available').append('<tr id="track-item"><td><a href="#" onclick="setSong(\''+uri+'\')">'+name+'</a></td></tr>');
+					    }
+				    },
+				    error: function (xhr, status) {
+				      alert(status);
+				    }
+				});
+
+				//$('#tracks-available').append('<tr><td onclick="changeSong('this.id')">Next</td></tr>');
+			});
+		}
+            },
+            error: function (xhr, status) {
+              alert(status);
+
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}
