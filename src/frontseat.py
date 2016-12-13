@@ -92,8 +92,6 @@ def search():
 @app.route('/browse/<string:username>')
 @login_required
 def browse(username=''):
-    if username=='':
-	    username = session['user']
     return render_template('browse.html', title='Browse', lname=name)
 
 
