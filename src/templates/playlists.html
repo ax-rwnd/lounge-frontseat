@@ -1,38 +1,37 @@
 {% extends "index.html" %}
 {% block content %}
-<table class="table table-hover">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% if items == None%}
-    Nothing in playlist
-    {%else%}
-    {% for item in items %}
-
-    <tr>
-        <td>{{item.id}}</td>
-        <td><a href="/music/{{item.id}}">{{item.name}}</a></td>
-        <td contenteditable='true'>This is edible</td>
-        <td><button type="button" name = "1" id="{{item.id}}" class="btn btn-primary">Remove</button></td>
-
-    </tr>
-    {% endfor %}
-    {% endif %}
-    </tbody>
-</table>
-
 <div id="response">
     <pre></pre>
 </div>
 
 <div class="table-responsive">
     <table class="table table-hover" id="dynamic_field">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if items == None%}
+        Nothing in playlist
+        {%else%}
+        {% for item in items %}
+
+        <tr>
+            <td>{{item.id}}</td>
+            <td><a name="{{item.name}}" id="title{{item.id}}" href="/music/{{item.id}}">{{item.name}}</a></td>
+            <td>
+                <button type="button" name="DELETE" id="{{item.id}}" onClick="send(this.id, this.name)"
+                        class="btn btn-primary">Remove
+                </button>
+            </td>
+
+        </tr>
+        {% endfor %}
+        {% endif %}
+        </tbody>
     </table>
-    <input type="button" name="submit" id="submit" class="btn btn-info" value="Submit"/>
     <button type="button" name="add" id="add" class="btn btn-success">Add playlist</button>
 </div>
 
@@ -43,26 +42,34 @@ $(document).ready(function(){
     var i=1;
     $('#add').click(function(){
            i++;
-           $('#dynamic_field').append('<tr id="row'+i+'"><td><input type="text" id="one'+i+'" name="name[]" placeholder="Enter name" class="form-control name_list" /></td><td><button type="button" name="add" id="'+i+'" onClick="send(this.id)" class="btn-success">Create</button></td></tr>');
+           $('#dynamic_field').append('<tr id="row'+i+'">');
+           $('#dynamic_field').append('<td><input type="text" id="one'+i+'" name="name[]" placeholder="Enter name" class="form-control name_list" /></td>');
+           $('#dynamic_field').append('<td><button type="button" name="ADD" id="'+i+'" onClick="send(this.id, this.name)" class="btn-success">Create</button></td></tr>');
     });
 });
-    function send(clicked_id){
-        var action = document.getElementById('one'+clicked_id+'').getAttribute("type");
-        alert(action);
+    function send(clicked_id, action){
+    var title= null;
+    if(action == "DELETE"){
+        title = document.getElementById("title"+clicked_id).getAttribute("name");
+    }
+    else{
+        title = $('#one'+clicked_id+'').val();
+    }
         $.ajax({
             url: '{{api_url}}/api/test',
             type: "POST",
             crossDomain: true,
             data: JSON.stringify({
-                title: $('#one'+clicked_id+'').val(),
+                title: title,
                 session: "{{session['session']}}",
                 username: "{{session['user']}}",
-                action: "ADD"
+                action: action
             }),
             contentType: "application/json",
             dataType: "json",
             success: function (response) {
-                 alert(response.status);
+
+                 location.reload();
             },
             error: function (xhr, status) {
               alert(status);
@@ -70,8 +77,11 @@ $(document).ready(function(){
             }
 
         });
-        $('#one'+clicked_id+'').replaceWith("<div>"+$('#one'+clicked_id+'').val()+"</div>");
+
+
+
     }
+
 </script>
 {% endblock %}
 
