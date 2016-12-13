@@ -23,9 +23,14 @@
     <tr>
         <td>{{item.id}}</td>
         <td>
-		<a id="link" title="Switch to this song"
+		<a id="link{{item.id}}" name="{{item.id}}" title="Switch to this song"
 		 href="#" onclick="setSong('{{item.path|safe}}');return false;">{{item.name}}</a>
-	 </td>
+	    </td>
+        <td>
+        <button type="button" name="DELETE" id="{{item.id}}" onClick="send(this.id, this.name)"
+                class="btn btn-primary">Remove
+        </button>
+        </td>
 
     </tr>
     {% endfor %}
@@ -37,7 +42,6 @@
 	<input type = "file" name = "file" accept="*/ogg" multiple />
 	<input type = "submit"/>
 </form>
-
 <script>
 	function setSong(song) {
 		var audio = document.getElementById('audio');
@@ -46,6 +50,37 @@
 		audio.load();
 		audio.play();
 	}
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+    function send(clicked_id, action){
+    var track_id= null;
+    if(action == "DELETE"){
+        track_id= document.getElementById("link"+clicked_id).getAttribute("name");
+    }
+        $.ajax({
+            url: '{{api_url}}/api/music/0',
+            type: "POST",
+            crossDomain: true,
+            data: JSON.stringify({
+                track_id: track_id,
+                session: "{{session['session']}}",
+                username: "{{session['user']}}",
+                action: action
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (response) {
+                 alert(response.status);
+                 location.reload();
+            },
+            error: function (xhr, status) {
+              alert(status);
+
+            }
+
+        });
+    }
 </script>
 
 {% endblock %}
