@@ -63,19 +63,6 @@ def before_request():
         g.session = session['session']
 
 
-@app.route('/protected')
-def protected():
-    if g.session:
-        return redirect(url_for('index'))
-
-
-@app.route('/getsession')
-def getsession():
-    if 'session' in session:
-        return session['session']
-    return 'Not logged in!'
-
-
 @app.route('/')
 @login_required
 def index():
@@ -105,7 +92,6 @@ def browse(username=''):
         username = session['user']
     data = {'username':username, 'session':session['session'], 'action':'GET', 'playlist_id':'*'}
     status = seated.send_post(config, '/api/music/0', data)
-    print "status",status
     if status['status'] == u'MUSIC_LIST':
 	    items = status['tracks']
 	    mitems = []
@@ -156,7 +142,6 @@ def upload(playlist_id):
 	if not os.path.isdir(config.tmp_folder):
 		os.makedirs(config.tmp_folder)
 
-	print request.files.getlist("file")
 	for f in request.files.getlist("file"):
 		path = os.path.join(config.tmp_folder,secure_filename(f.filename))
 		f.save(path)
@@ -177,7 +162,6 @@ def music(playlist_id=None):
     
     data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id, 'playlist_id':str(playlist_id)}
     status = seated.send_post(config, '/api/music/0', data)
-    print "STATUS", status['status'],status['status'] == u'MUSIC_LIST'
     if status['status'] == u'MUSIC_LIST':
         items = status['tracks']
 	mitems = []
@@ -241,7 +225,7 @@ def profile():
             data['newsecret'] = password
             data['secret'] = form.oldpassword.data
 
-            # update steanid
+        # update steamid
         steamid = form.steamid.data
         if len(steamid) > 0:
             data['steamid'] = steamid
@@ -314,8 +298,8 @@ def login():
             session['session'] = hash['session']
             session['user'] = hash['username']
             session['uid'] = hash['uid']
-            flash("You have been logged in!",'success')
-            return redirect(url_for('protected'))
+            flash("Welcome, " + session['user'] + "!",'success')
+            return redirect(url_for('index'))
 	elif hash['status'] == 'CONNECTION_FAILED':
 	    flash("The service is unavailable, please try again later.", "warning")
         else:
@@ -328,13 +312,10 @@ def login():
 
 @app.route('/add/', methods=['GET', 'POST'])
 def add():
-    print request.headers
     return render_template('add.html', api_url=config.api_url, session=session)
 
-
-# OpenID Part
+### OpenID Authentication
 _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
-
 
 def get_steam_userinfo(steam_id):
     options = {
@@ -347,12 +328,10 @@ def get_steam_userinfo(steam_id):
     rv = json.load(urlopen(url))
     return rv['response']['players']['player'][0] or {}
 
-
 @app.route('/steamlogin')
 @oid.loginhandler
 def steam_login():
     return oid.try_login('http://steamcommunity.com/openid')
-
 
 @oid.after_login
 def create_or_login(resp):
@@ -366,16 +345,11 @@ def create_or_login(resp):
         flash("Invalid login.", 'danger')
     elif status['status'] == u'LOGIN_OK':
         session['user'] = status['username']
+        session['uid'] = status['uid']
         session['session'] = status['session']
         flash("Welcome, " + session['user'] + "!",'success')
         return redirect(url_for('index'))
     return redirect(url_for('login'))
-
-
-# print "match",match
-# steamdata = get_steam_userinfo(match)
-# session['user_id'] = g.user.id
-# flash('You are logged in as %s' % g.user.nickname)
 
 if __name__ == "__main__":
     app.run(host=config.host, port=config.port, debug=True)
