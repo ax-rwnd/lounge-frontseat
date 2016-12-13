@@ -89,9 +89,11 @@ def search():
 
 
 @app.route('/browse')
-@app.route('/browse/<string:name>')
+@app.route('/browse/<string:username>')
 @login_required
-def browse(name=''):
+def browse(username=''):
+    if username=='':
+	    username = session['user']
     return render_template('browse.html', title='Browse', lname=name)
 
 
@@ -142,9 +144,9 @@ def upload(playlist_id):
 		url = os.path.join(config.showtime_url,"upload")
 		r = requests.post(url, files=files)
 		if (r.text == 'UPLOAD_OK'):
-			flash("Your file was uploaded!")
+			flash("Your file was uploaded!", 'success')
 		else:
-			flash ("Upload failed.")
+			flash ("Upload failed.", 'danger')
 	return redirect(url_for('music', playlist_id=playlist_id))
 
 @app.route('/music/<int:playlist_id>')
@@ -163,10 +165,10 @@ def music(playlist_id=None):
             mitems += [MusicItem(item[2], item[1], item[0])]
         return render_template('music.html', title='Playlist', config=config, playlist=playlist_id,  items=mitems)
     elif status['status'] == u'AUTH_FAIL':
-        flash("Your session is invalid, please login.")
+        flash("Your session is invalid, please login.", 'warning')
 	return redirect(url_for('login'))
     else:
-        flash("Something went wrong!")
+        flash("Something went wrong!", 'danger')
         return redirect(url_for('playlist'))
 
     #items = seated.send_get(config, '/api/music/' + str(user_id))
@@ -235,7 +237,7 @@ def profile():
 @app.route('/signout')
 def signout():
     session.pop('session', None)
-    flash("You have been logged out!")
+    flash("You have been logged out!",'info')
     return redirect(url_for('login'))
 
 
@@ -258,16 +260,16 @@ def register():
         status = seated.send_post(config, "/api/register", data)
         if status.get('status', '') != u"USER_CREATED":
             if status['status'] == u"USER_EXISTS":
-                flash("That username was already taken, pick another one.")
+                flash("That username was already taken, pick another one.",'warning' )
             elif status['status'] == u"USER_NAME_LENGTH":
-                flash("Your email seems to be invalid.")
+                flash("Your name is too long.",'warning')
             elif status['status'] == u"MISSING_PARAMS":
-                flash("There was an internal server error!")
+                flash("There was an internal server error!", 'warning')
             elif status['status'] == u"INVALID_NAME":
-                flash("Your name contained some illegal characters.")
+                flash("Your name contained some illegal characters.",'warning')
             return redirect(url_for('register'))
         elif status['status'] == u"USER_CREATED":
-            flash('Thank you for registering')
+            flash('Thank you for registering','success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
@@ -292,10 +294,10 @@ def login():
             session['session'] = hash['session']
             session['user'] = hash['username']
             session['uid'] = hash['uid']
-            flash("You have been logged in!")
+            flash("You have been logged in!",'success')
             return redirect(url_for('protected'))
         else:
-            flash("Login failed.")
+            flash("Login failed.",'danger')
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
@@ -337,13 +339,13 @@ def create_or_login(resp):
 
     status = seated.send_post(config, '/api/login', data)
     if status['status'] == u'MISSING_PARAMS':
-        flash("There was an internal error!")
+        flash("There was an internal error!", 'danger')
     elif status['status'] == u'LOGIN_FAILED':
-        flash("Invalid login.")
+        flash("Invalid login.", 'danger')
     elif status['status'] == u'LOGIN_OK':
         session['user'] = status['username']
         session['session'] = status['session']
-        flash("Welcome, " + session['user'] + "!")
+        flash("Welcome, " + session['user'] + "!",'success')
         return redirect(url_for('index'))
     return redirect(url_for('login'))
 
