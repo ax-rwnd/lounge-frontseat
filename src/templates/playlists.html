@@ -33,30 +33,30 @@
         </tbody>
     </table>
     <button type="button" name="add" id="add" class="btn btn-success">Add playlist</button>
+    <p></p>
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
 <script>
 $(document).ready(function(){
     var i=1;
     $('#add').click(function(){
            i++;
-           $('#dynamic_field').append('<tr id="row'+i+'">');
-           $('#dynamic_field').append('<td><input type="text" id="one'+i+'" name="name[]" placeholder="Enter name" class="form-control name_list" /></td>');
-           $('#dynamic_field').append('<td><button type="button" name="ADD" id="'+i+'" onClick="send(this.id, this.name)" class="btn-success">Create</button></td></tr>');
+
+           $('p').append('<input type="text" id="one'+i+'" name="name[]" placeholder="Enter name" class="form-control name_list" /><button type="button" name="ADD" id="'+i+'" onClick="send(this.id, this.name)" class="btn btn-success">Create</button>');
     });
 });
     function send(clicked_id, action){
     var title= null;
     if(action == "DELETE"){
-        title = document.getElementById("title"+clicked_id).getAttribute("name");
+        title = clicked_id;
     }
     else{
         title = $('#one'+clicked_id+'').val();
     }
         $.ajax({
-            url: '{{api_url}}/api/test',
+            url: '{{api_url}}/api/playlist',
             type: "POST",
             crossDomain: true,
             data: JSON.stringify({
@@ -68,8 +68,7 @@ $(document).ready(function(){
             contentType: "application/json",
             dataType: "json",
             success: function (response) {
-
-                 location.reload();
+                location.reload();
             },
             error: function (xhr, status) {
               alert(status);

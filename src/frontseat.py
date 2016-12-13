@@ -121,7 +121,6 @@ class PlaylistItem:
 def playlist():
     data = {'username':session['user'], 'session':session['session'], 'title':'N/A', 'action':'GET'}
     items = seated.send_post(config, '/api/playlist', data)
-
     if items['status'] == u'QUERY_OK':
         pitems = []
         for item in items['ids']:
@@ -168,13 +167,13 @@ def music(playlist_id=None):
     
     data = {'username':session['user'], 'session':session['session'], 'action':'GET', 'targetlist':playlist_id, 'playlist_id':str(playlist_id)}
     status = seated.send_post(config, '/api/music/0', data)
-    print "STATUS", status['status'],status['status'] == u'MUSIC_LIST'
-    if status['status'] == u'MUSIC_LIST':
+    print "STATUS", status['status'],status['status'] == 'MUSIC_LIST'
+    if status['status'] == 'MUSIC_LIST':
         items = status['tracks']
 	mitems = []
         for item in items:
             mitems += [MusicItem(item[2], item[1], item[0])]
-        return render_template('music.html', title='Playlist', config=config, playlist=playlist_id,  items=mitems)
+        return render_template('music.html', title='Playlist', config=config, playlist=playlist_id,  items=mitems,api_url=config.api_url)
     elif status['status'] == u'AUTH_FAIL':
         flash("Your session is invalid, please login.", 'warning')
 	return redirect(url_for('login'))
@@ -312,13 +311,6 @@ def login():
             return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
-
-
-
-@app.route('/add/', methods=['GET', 'POST'])
-def add():
-    print request.headers
-    return render_template('add.html', api_url=config.api_url, session=session)
 
 
 # OpenID Part
