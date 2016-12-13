@@ -48,8 +48,9 @@ def login_required(f):
 
         if status['status'] == "AUTH_OK":
             return f(*args, **kwargs)
-        else:
-            return redirect(url_for('login', next=request.url))
+	elif status['status'] == 'CONNECTION_FAILED':
+	    flash("The service is currently unavailable, please try again later.", 'warning')
+        return redirect(url_for('login'))
 
     return decorated_function
 
@@ -81,6 +82,14 @@ def index():
     """ Render home screen. """
     return render_template('index.html', title='Home')
 
+
+@app.route('/lounge')
+@app.route('/lounge/<string:username>')
+def lounge (username=''):
+    if username == '':
+        username = session['user']
+
+    return render_template('lounge.html')
 
 @app.route('/search')
 @login_required
@@ -307,9 +316,11 @@ def login():
             session['uid'] = hash['uid']
             flash("You have been logged in!",'success')
             return redirect(url_for('protected'))
+	elif hash['status'] == 'CONNECTION_FAILED':
+	    flash("The service is unavailable, please try again later.", "warning")
         else:
             flash("Login failed.",'danger')
-            return redirect(url_for('login'))
+        return redirect(url_for('login'))
     else:
         return render_template('login.html', form=form)
 
