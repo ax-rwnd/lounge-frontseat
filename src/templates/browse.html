@@ -1,5 +1,45 @@
 {% extends "index.html" %}
 {% block content %}
-Browse
+<audio id="audio" controls="controls" style="display:none;">
+	<source id="oggSource" src="" type="audio/ogg"></source>
+	Your browser cannot use the HTML5 audio element!
+</audio>
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+
+    </tr>
+    </thead>
+    <tbody>
+    {% if items == None%}
+    Nothing in playlist
+    {%else%}
+    {% for item in items %}
+
+    <tr>
+        <td>{{item.id}}</td>
+        <td>
+		<a id="link" title="Switch to this song"
+		 href="#" onclick="setSong('{{item.path|safe}}');return false;">{{item.name}}</a>
+	 </td>
+
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+<script>
+	function setSong(song) {
+		var audio = document.getElementById('audio');
+		var source = document.getElementById('oggSource');
+		source.src = "{{config.showtime_url}}/ogg/"+song;
+		audio.load();
+		audio.play();
+	}
+</script>
+
 {% endblock %}
 

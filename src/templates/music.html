@@ -34,8 +34,10 @@
 </table>
 <form action = "{{url_for('upload', playlist_id=playlist)}}" method = "POST"
 	enctype = "multipart/form-data">
-	<input type = "file" name = "file" accept="*/ogg" multiple />
-	<input type = "submit"/>
+	<label class="btn btn-default btn-file">
+		Select one or more files<input type = "file" name = "file" style="display:none;" accept="*/ogg" multiple />
+	</label>
+	<input type = "submit" class="btn btn-primary"/>
 </form>
 
 <script>

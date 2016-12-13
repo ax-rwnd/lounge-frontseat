@@ -92,7 +92,20 @@ def search():
 @app.route('/browse/<string:username>')
 @login_required
 def browse(username=''):
-    return render_template('browse.html', title='Browse', lname=name)
+    if username == '':
+        username = session['user']
+    data = {'username':username, 'session':session['session'], 'action':'GET', 'playlist_id':'*'}
+    status = seated.send_post(config, '/api/music/0', data)
+    print "status",status
+    if status['status'] == u'MUSIC_LIST':
+	    items = status['tracks']
+	    mitems = []
+	    for item in items:
+		    mitems += [MusicItem(item[2],item[1],item[0])]
+            return render_template('browse.html', title='Browse', config=config, items=mitems)
+    else:
+        flash("Something went wrong!", 'danger')
+    return render_template('browse.html', title='Browse', items=None)
 
 
 class PlaylistItem:
