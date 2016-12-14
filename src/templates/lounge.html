@@ -7,7 +7,7 @@
 </audio>
 
 <div class="dropdown">
-	<button class="btn btn-primary dropdown-toggle" id="playlists" type="button" data-toggle="dropdown">Dropdown <span class="caret"></span></button>
+	<button class="btn btn-primary dropdown-toggle" id="playlists" type="button" data-toggle="dropdown">Playlists <span class="caret"></span></button>
 	  <ul class="dropdown-menu">
 	</ul>
 </div>
@@ -20,8 +20,8 @@
 		</tr>
 	</thead>
 	<tbody id="tracks-available">
-		<tr>
-		<td>Wololow</td>
+		<tr class="track-item">
+		<td>No tracks yet.</td>
 		</tr>
 	</tbody>
 
@@ -74,11 +74,18 @@ $(document).ready(function(){
 				    contentType: "application/json",
 				    dataType: "json",
 				    success: function (response) {
-					    for (var i = 0; i<response.tracks.length; i++) {
-						    var uri = encodeURI(response.tracks[i][2]);
-						    var name = response.tracks[i][1];
-						    alert(name);
-						    $('#tracks-available').append('<tr id="track-item"><td><a href="#" onclick="setSong(\''+uri+'\')">'+name+'</a></td></tr>');
+					    //Clear results
+					    $('.track-item').remove();
+
+					    //Populate list
+					    if (response.tracks.length == 0) {
+						    $('#tracks-available').append('<tr class="track-item"><td>No tracks yet.</td></tr>');
+					    } else {
+						    for (var i = 0; i<response.tracks.length; i++) {
+							    var uri = encodeURI(response.tracks[i][2]);
+							    var name = response.tracks[i][1];
+							    $('#tracks-available').append('<tr class="track-item"><td><a href="#" onclick="setSong(\''+uri+'\')">'+name+'</a></td></tr>');
+						    }
 					    }
 				    },
 				    error: function (xhr, status) {
