@@ -135,7 +135,7 @@ class MusicItem:
         self.name = name
         self.id = id
 
-@app.route('/upload/<int:playlist_id>', methods=['POST'])
+@app.route('/sendfile/<int:playlist_id>', methods=['POST'])
 @login_required
 def upload(playlist_id):
 
@@ -147,7 +147,7 @@ def upload(playlist_id):
 		f.save(path)
 		files = {'username':session['user'], 'session':session['session'], 'playlist_id':str(playlist_id), f.filename:open(path,"rb")}
 		url = os.path.join(config.showtime_url,"upload")
-		r = requests.post(url, files=files)
+		r = requests.post(url, files=files, verify=False)
 		if (r.text == 'UPLOAD_OK'):
 			flash("Your file was uploaded!", 'success')
 		else:
