@@ -16,6 +16,8 @@ def send_post(config, endpoint, data):
         return r.json()
     except requests.exceptions.ConnectionError:
         return {'status':'CONNECTION_FAILED'}
+    except ValueError:
+        return {'status':'CONNECTION_FAILED'}
 
 def send_get(config, endpoint):
     '''send a request to rest api
