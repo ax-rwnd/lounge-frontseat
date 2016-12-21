@@ -68,7 +68,15 @@ def before_request():
 @login_required
 def index():
     """ Render home screen. """
-    return render_template('index.html', title='Home')
+    data = {'username':session['user'], 'session':session['session'], 'action':'LOUNGES'}
+    response = seated.send_post(config, '/api/friends', data)
+    friends = []
+    if response['status'] == 'NO_FRIENDS':
+	    friends = []
+    else:
+	    friends = response['friends']
+
+    return render_template('home.html', title='Home', friends=friends)
 
 
 @app.route('/lounge')

@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+{% block content %}
+
+<h3>Welcome home, time to listen to some tunes!</h3>
+<p>To start out, add some music to your library and setup a playlist.</p>
+
+
+{% if friends | length == 0 %}
+	<p><i>Once your friends have added you to their friendlists, their lounges whill show up below.</i></p>
+{% else %}
+	<p>The lounges of those who consider you their friend:</p>
+	{% for friend in friends %}
+	<a href={{url_for('lounge', username=friend)}}>{{friend}}</a>
+	{% endfor %}
+{% endif %}
+
+{% endblock %}
