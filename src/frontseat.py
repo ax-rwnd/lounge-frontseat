@@ -33,6 +33,7 @@ nav.Bar('top', [
     ]),
     nav.Item('Profile', 'profile', items=[
         nav.Item('Settings', 'settings'),
+	nav.Item('Friends', 'users'),
         nav.Item('Signout', 'signout'),
     ]),
 ])
@@ -283,6 +284,21 @@ class LoginForm(Form):
     username = StringField('Username', [validators.Length(min=4, max=25)])
     password = PasswordField('Password', [validators.DataRequired()])
 
+
+@app.route('/friends', methods=['GET'])
+@login_required
+def friends ():
+	data = {'username':session['user'], 'session':session['session'], 'action':'GET'}
+	response = seated.send_post(config, '/api/friends', data)
+	print "friends", response
+	if response['status'] == 'QUERY_OK':
+		return render_template('friends.html', friends=response['friends'])
+	elif response['status'] == 'NO_FRIENDS':
+		flash('You have no friends yet, add some below!', 'info')
+		return render_template('friends.html', friends=[])
+	else:
+		flash('Something went wrong!', 'warning')
+		return url_for('index')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

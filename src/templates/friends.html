@@ -1,0 +1,74 @@
+{% extends "index.html" %}
+{% block content %}
+
+Enter the name of a friend you want to add:
+<div class="input-group">
+	<span class="input-group-btn">
+		<button class="btn btn-success" onClick="addFriend()" type="button">Add</button>
+	</span>
+	<input type="text" id="namefield" class="form-control">
+</div>
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+    </tr>
+    </thead>
+    <tbody id="friendlist">
+    {% if friends|length > 0 %}
+	    {% for friend in friends %}
+	    <tr class="frienditem" id="{{friend}}">
+	    <td><p>{{friend}}</p></td>
+            <td><button type="button" onClick="removeFriend('{{friend}}')"
+                        class="btn btn-primary">Remove</button></td>
+	    </tr>
+	    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+	function removeFriend(friendname) {
+		$.ajax({url: '{{config.api_url}}/api/friends',
+			type: 'POST',
+			crossDomain: true,
+			data: JSON.stringify({
+				username: "{{session['user']}}",
+				session: "{{session['session']}}",
+				action: 'DELETE',
+				friend: friendname}),
+			contentType: "application/json",
+			dataType: "json",
+			success: function (response) {
+				if (response.status == 'FRIEND_DELETED')
+					$('#'+friendname).remove();	
+				else console.log("Status:"+response.status);
+				},
+			error: function (response) {} });
+	}
+
+	function addFriend() {
+		friendname = document.getElementById('namefield').value;
+
+		$.ajax({url: '{{config.api_url}}/api/friends',
+			type: 'POST',
+			crossDomain: true,
+			data: JSON.stringify({
+				username: "{{session['user']}}",
+				session: "{{session['session']}}",
+				action: 'ADD',
+				friend: friendname}),
+			contentType: "application/json",
+			dataType: "json",
+			success: function (response) {
+				if (response.status == 'FRIEND_ADDED')
+					$("#friendlist").append('<tr class="frienditem" id="'+friendname+'"><td><p>'+friendname+'</p></td><td><button type="button" onClick="removeFriend(\''+friendname+'\')" class="btn btn-primary">Remove</button></td></tr>');
+				else console.log("Status: "+response.status);
+				},
+			error: function (response) {} });
+	}
+</script>
+{% endblock %}
+
