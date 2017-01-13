@@ -1,6 +1,8 @@
 {% extends "index.html" %}
 {% block content %}
 
+<h1> {{username}}'s lounge </h1>
+
 <audio id="audio" controls="controls">
 	<source id="oggSource" src="" type="audio/ogg"></source>
 	Your browser cannot use the HTML5 audio element!
@@ -10,6 +12,7 @@
 	<button class="btn btn-primary dropdown-toggle" id="playlists" type="button" data-toggle="dropdown">Playlists <span class="caret"></span></button>
 	  <ul class="dropdown-menu">
 	</ul>
+<!-- <button class="btn btn-primary" type="button" onClick="getPlaylist()">Refresh</button> -->
 </div>
 
 <div class="container">
@@ -29,6 +32,59 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script>
+//Unused, scrapped in feature-freeze
+function getPlaylist() {
+	$.ajax({url: '{{config.api_url}}/api/lounge',
+		type: 'POST',
+		crossDomain: true,
+		contentType: "application/json",
+		dataType: "json",
+		data: JSON.stringify ({
+			session: "{{session['session']}}",
+			username: "{{session['user']}}",
+			action: 'GETPLAYLIST',
+			owner: "{{username}}"
+		}),
+		success: function (response) {
+			$.ajax({
+			    url: '{{config.api_url}}/api/music/0',
+			    type: "POST",
+			    crossDomain: true,
+			    data: JSON.stringify({
+				session: "{{session['session']}}",
+				username: "{{session['user']}}",
+				action: 'GET', 
+				playlist_id: response.playlist,
+			    }),
+			    contentType: "application/json",
+			    dataType: "json",
+
+			    success: function (response) {
+				    //Clear results
+				    $('.track-item').remove();
+
+				    //Populate list
+				    if (response.tracks.length == 0) {
+					    $('#tracks-available').append('<tr class="track-item"><td>No tracks yet.</td></tr>');
+				    } else {
+					    for (var i = 0; i<response.tracks.length; i++) {
+						    var uri = encodeURI(response.tracks[i][2]);
+						    var name = response.tracks[i][1];
+						    $('#tracks-available').append('<tr class="track-item"><td><a href="#" onclick="setSong(\''+uri+'\')">'+name+'</a></td></tr>');
+					    }
+				    }
+			    },
+			    error: function (xhr, status) {
+			      alert(status);
+			    }
+			});
+		},
+		error: function (response) {
+			alert(response.status);
+		}
+	});
+}
+
 function setSong(song) {
 	var audio = document.getElementById('audio');
 	var source = document.getElementById('oggSource');
@@ -47,12 +103,16 @@ $(document).ready(function(){
                 title: "N/A",
                 session: "{{session['session']}}",
                 username: "{{session['user']}}",
-                action: "GET"
+                action: "GET",
+		owner: "{{username}}"
             }),
             contentType: "application/json",
             dataType: "json",
             success: function (response) {
-		if (response.status == 'QUERY_OK') {
+		if (response.status == 'NOT_FRIENDS') {
+			alert("This user either does not consider you their friend, or you may have forgotten to add them to your friend list.");
+			window.location.href = "{{url_for('index')}}";
+		} else if (response.status == 'QUERY_OK') {
 			$('.dropdown-item').remove();
 			for (var i = 0; i<response.ids.length; i++) {
 				$('.dropdown-menu').append('<li><a id="'+response.ids[i][0]+'" class="dropdown-item" onclick="" href="#">'+response.ids[i][1]+'</a></li>');
@@ -99,7 +159,6 @@ $(document).ready(function(){
             },
             error: function (xhr, status) {
               alert(status);
-
             }
         });
     });

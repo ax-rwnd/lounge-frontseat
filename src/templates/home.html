@@ -2,16 +2,25 @@
 {% block content %}
 
 <h3>Welcome home, time to listen to some tunes!</h3>
-<p>To start out, add some music to your library and setup a playlist.</p>
+<p>To start out, add some music to your library and setup a playlist. Then, add your friends to your <a href={{url_for('friends')}}>friendlist</a>, your friends' lounges are only available once you have accepted each others' friend requests.</p>
 
 
-{% if friends | length == 0 %}
-	<p><i>Once your friends have added you to their friendlists, their lounges whill show up below.</i></p>
+{% if friends | length == 0 and unconfirmed | length == 0 %}
+	<p><i>Once your friends have added you to their friendlists, they will show up below.</i></p>
 {% else %}
-	<p>The lounges of those who consider you their friend:</p>
-	{% for friend in friends %}
-	<a href={{url_for('lounge', username=friend)}}>{{friend}}</a>
-	{% endfor %}
+	{% if friends | length > 0%}
+		<p>The lounges of your friends:</p>
+		{% for friend in friends %}
+		<p><a href={{url_for('lounge', username=friend)}}>{{friend}}</a></p>
+		{% endfor %}
+	{%endif%}
+
+	{% if unconfirmed | length > 0%}
+		<p>Friends you haven't added yet:</p>
+		{% for friend in unconfirmed %}
+		<p><a href={{url_for('friends')}}>{{friend}}</a></p>
+		{% endfor %}
+	{% endif%}
 {% endif %}
 
 {% endblock %}

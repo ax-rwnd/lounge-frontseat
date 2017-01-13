@@ -70,13 +70,25 @@ def index():
     """ Render home screen. """
     data = {'username':session['user'], 'session':session['session'], 'action':'LOUNGES'}
     response = seated.send_post(config, '/api/friends', data)
-    friends = []
+    confirmed = []
+    unconfirmed = []
     if response['status'] == 'NO_FRIENDS':
-	    friends = []
+    	pass
     else:
 	    friends = response['friends']
+	    for friend in friends:
+		    data = {'username':session['user'], 'session':session['session'], 'owner':friend, 'action':'GET'}
+		    response = seated.send_post(config, '/api/playlist', data)
+		    print "response "+response['status']
+		    if response['status'] == 'NOT_FRIENDS':
+			    unconfirmed += [friend]
+		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
+			    confirmed += [friend]
+    print "out, confirmed: "+str(confirmed)+" unconf: "+str(unconfirmed)
 
-    return render_template('home.html', title='Home', friends=friends)
+
+
+    return render_template('home.html', title='Home', friends=confirmed, unconfirmed = unconfirmed)
 
 
 @app.route('/lounge')
@@ -85,7 +97,7 @@ def lounge (username=''):
     if username == '':
         username = session['user']
 
-    return render_template('lounge.html', config=config, session=session)
+    return render_template('lounge.html', config=config, session=session, username=username)
 
 @app.route('/search')
 @login_required
