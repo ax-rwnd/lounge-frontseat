@@ -2,15 +2,15 @@ from os import urandom
 
 class Config:
 	""" Defines settings for the frontend server. """
-	api_url = None		 #backend API address
-	secret_key = None	 #frontend session secret
-	ssl_context = None
-	api_key = None
+	api_url = None		 # backend API address
+	secret_key = None	 # frontend session secret
+	ssl_context = None	 # ssl context tuple
+	api_key = None		 # in-service api-key
 
-	openid_address = None
-	openid_api_key = None
-	showtime_url = None
-	tmp_folder = None
+	openid_address = None	 # address for openid validation
+	openid_api_key = None	 # openid api-key
+	showtime_url = None	 # address to showtime server
+	tmp_folder = None	 # temporary files folder
 
 
 	host = None		 #listen address
@@ -24,7 +24,7 @@ class Config:
 		self.api_key = "YourAPIKeyHere"
 		
 		self.openid_address = "http://steamcommunity.com/openid"
-		self.openid_api_key = "YourSteamAPIKeyHere""
+		self.openid_api_key = "YourSteamAPIKeyHere"
 
 		#set this to match your backseat setup
 		self.api_url = "https://yourapidomain.tld"
