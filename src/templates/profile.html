@@ -2,7 +2,9 @@
 
 {% extends "index.html" %}
 {% block content %}
-Welcome to your profile!
+<p>Welcome to your profile!</p>
+To add a steam-id for OpenID logins, get your id from the steam community (note: not your display name, your actual ID!), and fill out the form as if you were switching to the same password.</p>
+<p>To change your password, fill out the fields like you would normally</p>
   {{ macros.render_form(form, action_url=url_for('profile'), action_text='Update',
     class_='register-form') }}
 {% endblock %}

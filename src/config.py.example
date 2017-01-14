@@ -1,24 +1,37 @@
-from datetime import datetime
+from os import urandom
 
 class Config:
 	""" Defines settings for the frontend server. """
-	api_url = None		#backend API address
-	secret_key = None	#frontend session secret
-	ssl_context = None	#ssl cert and key
+	api_url = None		 #backend API address
+	secret_key = None	 #frontend session secret
+	ssl_context = None
+	api_key = None
 
-	host = None		#listen address
-	port = None		#listen port
+	openid_address = None
+	openid_api_key = None
+	showtime_url = None
+	tmp_folder = None
+
+
+	host = None		 #listen address
+	port = None		 #listen port
 	
 	def __init__(self):
 		""" Defines your custom values in here, for instance. """
 		self.host = "0.0.0.0"
 		self.port = 8080
-		self.ssl_context = ('cert.pem', 'priv.key')
+		self.ssl_context = ('cert.pem', 'privkey.pem')
+		self.api_key = "YourAPIKeyHere"
+		
+		self.openid_address = "http://steamcommunity.com/openid"
+		self.openid_api_key = "YourSteamAPIKeyHere""
 
 		#set this to match your backseat setup
-		self.api_url = 'https://example-foundation.org/'
+		self.api_url = "https://yourapidomain.tld"
+		self.showtime_url = "https://yourshowtimedomain.tld"
+		self.tmp_folder = "your/temp/audio/folder/here"
 
 		#this key is used to build the sessions for the front-end only
 		#by selecting a different key every time the server is restarted,
 		#using time for instance, the session should be invalidated
-		self.secret_key = 'totally-secret'+str(datetime.now().time())
+		self.secret_key = urandom(24)

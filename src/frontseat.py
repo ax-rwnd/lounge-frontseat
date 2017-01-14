@@ -370,10 +370,13 @@ def create_or_login(resp):
     data = {'steam_id': match.group(1)}
 
     status = seated.send_post(config, '/api/login', data)
+    print "\n\nStatus back: "+str(status)+"\n\n"
     if status['status'] == u'MISSING_PARAMS':
         flash("There was an internal error!", 'danger')
     elif status['status'] == u'LOGIN_FAILED':
         flash("Invalid login.", 'danger')
+    elif status['status'] == u'INVALID_API_KEY':
+        flash("The service has not configured its backend API key correctly, please contact an administrator!", danger)
     elif status['status'] == u'LOGIN_OK':
         session['user'] = status['username']
         session['uid'] = status['uid']
