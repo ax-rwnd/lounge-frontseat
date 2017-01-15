@@ -1,3 +1,5 @@
+# Edit and copy this file to config.py before launching!
+
 from os import urandom
 
 class Config:
