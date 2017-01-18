@@ -6,6 +6,9 @@
 	Your browser cannot use the HTML5 audio element!
 </audio>
 
+<h1>Playlist Music</h1>
+<p>Add music to your playlists by using the controls below.</p>
+
 <table class="table table-hover">
     <thead>
     <tr>
@@ -15,8 +18,8 @@
     </tr>
     </thead>
     <tbody>
-    {% if items == None%}
-    Nothing in playlist
+    {% if items == None or items | length <= 0%}
+    <td>Nothing in playlist</td><td></td>
     {%else%}
     {% for item in items %}
 

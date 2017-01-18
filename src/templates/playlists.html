@@ -1,5 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
+<h1>Playlists</h1>
+<p>Here you can manage your playlists, to add music to a playlist, click on its link.</p>
 
 <div class="table-responsive">
     <table class="table table-hover" id="dynamic_field">
@@ -10,8 +12,8 @@
         </tr>
         </thead>
         <tbody>
-        {% if items == None%}
-        Nothing in playlist
+        {% if items == None or items | length <= 0 %}
+        <td>You don't have any playlists yet.</td><td></td>
         {%else%}
         {% for item in items %}
 
