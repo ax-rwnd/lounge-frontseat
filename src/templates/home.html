@@ -9,17 +9,35 @@
 	<p><i>Once your friends have added you to their friendlists, they will show up below.</i></p>
 {% else %}
 	{% if friends | length > 0%}
-		<p>The lounges of your friends:</p>
-		{% for friend in friends %}
-		<p><a href={{url_for('lounge', username=friend)}}>{{friend}}</a></p>
-		{% endfor %}
+		<b>The lounges of your friends:</b>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for friend in friends %}
+				<tr><td><a href={{url_for('lounge', username=friend)}}>{{friend}}</a></td></tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	{%endif%}
 
 	{% if unconfirmed | length > 0%}
-		<p>Friends you haven't added yet:</p>
-		{% for friend in unconfirmed %}
-		<p><a href={{url_for('friends')}}>{{friend}}</a></p>
-		{% endfor %}
+		<table class="table table-striped">
+			<b>Pending friend-requests:</b>
+			<thead>
+				<tr>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for friend in unconfirmed %}
+				<tr><td><a style="color: red;" href={{url_for('friends')}}>{{friend}}</a></td></tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	{% endif%}
 {% endif %}
 
