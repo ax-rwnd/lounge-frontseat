@@ -84,7 +84,6 @@ def index():
 			    unconfirmed += [friend]
 		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
 			    confirmed += [friend]
-    print "out, confirmed: "+str(confirmed)+" unconf: "+str(unconfirmed)
 
 
 

@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
 <h1>Playlists</h1>
-<p>Here you can manage your playlists, to add music to a playlist, click on its link.</p>
+<p>Here you can manage your playlists, to add music to a playlist, click on the green button.</p>
 
 <div class="table-responsive">
     <table class="table table-hover" id="dynamic_field">
@@ -24,6 +24,7 @@
                 <button type="button" name="DELETE" id="{{item.id}}" onClick="send(this.id, this.name)"
                         class="btn btn-primary">Remove
                 </button>
+	    	<form action="/music/{{item.id}}" style="display:inline;"><input type="submit" class="btn btn-success" value="Add Music"/></form>
             </td>
 
         </tr>
@@ -63,7 +64,11 @@ $(document).ready(function(){
             contentType: "application/json",
             dataType: "json",
             success: function (response) {
-                location.reload();
+		if (response.status == "MISSING_PARAMS")
+			alert("The request failed, contact an administrator.");
+		else if (response.status == "ADDITION_FAILED") 
+			alert("Failed to add file, please try again.");
+                else location.reload();
             },
             error: function (xhr, status) {
               alert(status);
