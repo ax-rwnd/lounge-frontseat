@@ -112,6 +112,10 @@ $(document).ready(function(){
 		if (response.status == 'NOT_FRIENDS') {
 			alert("This user either does not consider you their friend, or you may have forgotten to add them to your friend list.");
 			window.location.href = "{{url_for('index')}}";
+		} else if (response.status == 'NO_PLAYLISTS') {
+			$('.dropdown-item').remove();
+			$('.dropdown-menu').append('<li><a class="dropdown-item">No playlists available.</a></li>');
+
 		} else if (response.status == 'QUERY_OK') {
 			$('.dropdown-item').remove();
 			for (var i = 0; i<response.ids.length; i++) {
