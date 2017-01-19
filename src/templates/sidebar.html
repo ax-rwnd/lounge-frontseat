@@ -5,11 +5,13 @@
 	    <li>
 	    <span class="fa-stack fa-lg pull-left"><i class="fa fa-key fa-stack-1x "></i></span>Logged in as {{session['user']}}
 	    </li>
+
             <li>
                 <a href="{{url_for('index')}}"><span class="fa-stack fa-lg pull-left"><i class="fa fa-home fa-stack-1x "></i></span>
                     Home</a>
 
             </li>
+
             <li>
                 <a href="{{url_for('lounge')}}">
 			<span class="fa-stack fa-lg pull-left">
@@ -17,34 +19,22 @@
 			</span>
                     Lounge</a>
 	    </li>
+
             <li>
                 <a href="/browse"> <span class="fa-stack fa-lg pull-left"><i class="fa fa-folder-open-o fa-stack-1x "></i></span>Browse</a>
             </li>
-  <li>
+
+	     <li>
                 <a href="/playlist"> <span class="fa-stack fa-lg pull-left"><i class="fa fa-list fa-stack-1x "></i></span>Playlist</a>
             </li>
-         <li>
-                <a href="/info"><span class="fa-stack fa-lg pull-left active"><i class="fa fa-info fa-stack-1x "></i></span>
-                    Info</a>
-                <ul class="nav-pills nav-stacked" style="list-style-type:none;">
-                    <li><a href="/about"><span class="fa-stack fa-lg pull-left"><i
-                        class="fa fa-info fa-stack-1x "></i></span>About</a></li>
-                    <li> <a href="/contact"><span class="fa-stack fa-lg pull-left"><i class="fa fa-paper-plane-o fa-stack-1x "></i></span>Contact</a></li>
-
-                </ul>
-            </li>
- <li>
-                <a href="/profile"><span class="fa-stack fa-lg pull-left"><i class="fa fa-user fa-stack-1x "></i></span>
-                    Profile</a>
-                <ul class="nav-pills nav-stacked" style="list-style-type:none;">
-                    <li><a href="/profile"><span class="fa-stack fa-lg pull-left"><i
-                            class="fa fa-gear fa-stack-1x "></i></span>Settings</a></li>
-                    <li><a href="/friends"><span class="fa-stack fa-lg pull-left"><i
-                            class="fa fa-users fa-stack-1x "></i></span>Friends</a></li>
-                    <li><a href="/signout"><span class="fa-stack fa-lg pull-left"><i
-                            class="fa fa-sign-out fa-stack-1x "></i></span>Sign out</a></li>
-
-                </ul>
-            </li>
+         <!--<li>-->
+                <!-- <a href="/info"><span class="fa-stack fa-lg pull-left active"><i class="fa fa-info fa-stack-1x "></i></span>  Info</a>-->
+                <!--<ul class="nav-pills nav-stacked" style="list-style-type:none;">-->
+             <li><a href="/about"><span class="fa-stack fa-lg pull-left"><i class="fa fa-info fa-stack-1x "></i></span>About</a></li>
+             <li><a href="/contact"><span class="fa-stack fa-lg pull-left"><i class="fa fa-paper-plane-o fa-stack-1x "></i></span>Contact</a></li>
+	     <!--<li><a href="/profile"><span class="fa-stack fa-lg pull-left"><i class="fa fa-user fa-stack-1x "></i></span>Profile</a>-->
+             <li><a href="/profile"><span class="fa-stack fa-lg pull-left"><i class="fa fa-gear fa-stack-1x "></i></span>Settings</a></li>
+	     <li><a href="/friends"><span class="fa-stack fa-lg pull-left"><i class="fa fa-users fa-stack-1x "></i></span>Friends</a></li>
+	     <li><a href="/signout"><span class="fa-stack fa-lg pull-left"><i class="fa fa-sign-out fa-stack-1x "></i></span>Sign out</a></li>
         </ul>
     </div><!-- /#sidebar-wrapper -->
