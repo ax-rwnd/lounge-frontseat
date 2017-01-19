@@ -34,12 +34,13 @@
     <!-- <button type="button" name="add" id="add" class="btn btn-success">Add playlist</button> -->
     <p></p>
 </div>
+<span id="addspan"></span>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 <script>
 $(document).ready(function(){
-   $('#dynamic_field').append('<div class="input-group"><span class="input-group-btn"><button class="btn btn-success" onClick="send(this.id, \'ADD\')" type="button">Create</button></span><input type="text" name="name[]" placeholder="Enter name" id="addinput" class="form-control"></div>');
+   $('#addspan').append('<div class="input-group"><span class="input-group-btn"><button class="btn btn-success" onClick="send(this.id, \'ADD\')" type="button">Create</button></span><input type="text" name="name[]" placeholder="Enter name" id="addinput" class="form-control"></div>');
 });
     function send(clicked_id, action){
     var title= null;
