@@ -39,7 +39,7 @@
 
 <script>
 $(document).ready(function(){
-   $('#dynamic_field').append('<input type="text" id="addinput" name="name[]" placeholder="Enter name" class="form-control name_list" /><button type="button" name="ADD" id="addbutton" onClick="send(this.id, this.name)" class="btn btn-success">Create</button>');
+   $('#dynamic_field').append('<div class="input-group"><span class="input-group-btn"><button class="btn btn-success" onClick="send(this.id, \'ADD\')" type="button">Create</button></span><input type="text" name="name[]" placeholder="Enter name" id="addinput" class="form-control"></div>');
 });
     function send(clicked_id, action){
     var title= null;
