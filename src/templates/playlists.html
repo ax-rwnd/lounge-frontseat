@@ -31,7 +31,7 @@
         {% endif %}
         </tbody>
     </table>
-    <button type="button" name="add" id="add" class="btn btn-success">Add playlist</button>
+    <!-- <button type="button" name="add" id="add" class="btn btn-success">Add playlist</button> -->
     <p></p>
 </div>
 
@@ -39,12 +39,7 @@
 
 <script>
 $(document).ready(function(){
-    var i=1;
-    $('#add').click(function(){
-           i++;
-
-           $('p').append('<input type="text" id="one'+i+'" name="name[]" placeholder="Enter name" class="form-control name_list" /><button type="button" name="ADD" id="'+i+'" onClick="send(this.id, this.name)" class="btn btn-success">Create</button>');
-    });
+   $('#dynamic_field').append('<input type="text" id="addinput" name="name[]" placeholder="Enter name" class="form-control name_list" /><button type="button" name="ADD" id="addbutton" onClick="send(this.id, this.name)" class="btn btn-success">Create</button>');
 });
     function send(clicked_id, action){
     var title= null;
@@ -52,7 +47,7 @@ $(document).ready(function(){
         title = clicked_id;
     }
     else{
-        title = $('#one'+clicked_id+'').val();
+        title = $('#addinput').val();
     }
         $.ajax({
             url: '{{api_url}}/api/playlist',

@@ -2,7 +2,7 @@
 {% block content %}
 
 <h3>Welcome home, time to listen to some tunes!</h3>
-<p>To start out, add some music to your library and setup a playlist. Then, add your friends to your <a href={{url_for('friends')}}>friendlist</a>, your friends' lounges are only available once you have accepted each others' friend requests.</p>
+<p>To start out, create a <a href={{url_for('playlist')}}>playlist</a> and add some music to it. Then, add your friends to your <a href={{url_for('friends')}}>friendlist</a>, your friends' lounges are only available once you have accepted each others' friend requests.</p>
 
 
 {% if friends | length == 0 and unconfirmed | length == 0 %}
