@@ -163,6 +163,11 @@ def upload(playlist_id):
 	if not os.path.isdir(config.tmp_folder):
 		os.makedirs(config.tmp_folder)
 
+	print "errorfile:"+str(len(request.files.getlist("file")[0].filename))
+	if len(request.files.getlist("file")) == 1 and len(request.files.getlist("file")[0].filename)<=0:
+		flash("Please select a file before uploading.", 'danger')
+		return redirect(url_for('music', playlist_id=playlist_id))
+
 	for f in request.files.getlist("file"):
 		path = os.path.join(config.tmp_folder,secure_filename(f.filename))
 		f.save(path)
