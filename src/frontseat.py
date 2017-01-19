@@ -79,7 +79,6 @@ def index():
 	    for friend in friends:
 		    data = {'username':session['user'], 'session':session['session'], 'owner':friend, 'action':'GET'}
 		    response = seated.send_post(config, '/api/playlist', data)
-		    print "response "+response['status']
 		    if response['status'] == 'NOT_FRIENDS':
 			    unconfirmed += [friend]
 		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
@@ -162,7 +161,6 @@ def upload(playlist_id):
 	if not os.path.isdir(config.tmp_folder):
 		os.makedirs(config.tmp_folder)
 
-	print "errorfile:"+str(len(request.files.getlist("file")[0].filename))
 	if len(request.files.getlist("file")) == 1 and len(request.files.getlist("file")[0].filename)<=0:
 		flash("Please select a file before uploading.", 'danger')
 		return redirect(url_for('music', playlist_id=playlist_id))
@@ -312,11 +310,26 @@ class LoginForm(Form):
 @app.route('/friends', methods=['GET'])
 @login_required
 def friends ():
-	data = {'username':session['user'], 'session':session['session'], 'action':'GET'}
+	data = {'username':session['user'], 'session':session['session'], 'action':'LOUNGES'}
 	response = seated.send_post(config, '/api/friends', data)
-	print "friends", response
+
 	if response['status'] == 'QUERY_OK':
-		return render_template('friends.html', friends=response['friends'])
+	    friends = response['friends']
+
+	    confirmed = []
+	    unconfirmed = []
+	    friends = response['friends']
+	    print friends
+	    for friend in friends:
+		    data = {'username':session['user'], 'session':session['session'], 'owner':friend, 'action':'GET'}
+		    response = seated.send_post(config, '/api/playlist', data)
+		    if response['status'] == 'NOT_FRIENDS':
+			    unconfirmed += [friend]
+		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
+			    confirmed += [friend]
+
+	    return render_template('friends.html', friends=confirmed, pending=unconfirmed)
+
 	elif response['status'] == 'NO_FRIENDS':
 		flash('You have no friends yet, add some below!', 'info')
 		return render_template('friends.html', friends=[])
@@ -374,7 +387,6 @@ def create_or_login(resp):
     data = {'steam_id': match.group(1)}
 
     status = seated.send_post(config, '/api/login', data)
-    print "\n\nStatus back: "+str(status)+"\n\n"
     if status['status'] == u'MISSING_PARAMS':
         flash("There was an internal error!", 'danger')
     elif status['status'] == u'LOGIN_FAILED':

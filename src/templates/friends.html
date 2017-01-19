@@ -6,7 +6,7 @@
 <table class="table table-hover">
     <thead>
     <tr>
-        <th>Name</th>
+        <th>Your friends</th>
     </tr>
     </thead>
     <tbody id="friendlist">
@@ -16,6 +16,25 @@
 	    <td><p>{{friend}}</p></td>
             <td><button type="button" onClick="removeFriend('{{friend}}')"
                         class="btn btn-primary">Remove</button></td>
+	    </tr>
+	    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>Pending requests</th>
+    </tr>
+    </thead>
+    <tbody id="pendinglist">
+    {% if pending|length > 0 %}
+	    {% for friend in pending %}
+	    <tr class="pendingitem" id="{{friend}}">
+	    <td><p>{{friend}}</p></td>
+            <td><button type="button" onClick="addFriendValue('{{friend}}')"
+                        class="btn btn-success">Add</button></td>
 	    </tr>
 	    {% endfor %}
     {% endif %}
@@ -43,16 +62,19 @@
 			contentType: "application/json",
 			dataType: "json",
 			success: function (response) {
-				if (response.status == 'FRIEND_DELETED')
+				if (response.status == 'FRIEND_DELETED') {
 					$('#'+friendname).remove();	
-				else console.log("Status:"+response.status);
+					location.reload();
+				} else console.log("Status:"+response.status);
 				},
 			error: function (response) {} });
 	}
 
 	function addFriend() {
 		friendname = document.getElementById('namefield').value;
-
+		addFriendValue(friendname);
+	}
+/*
 		$.ajax({url: '{{config.api_url}}/api/friends',
 			type: 'POST',
 			crossDomain: true,
@@ -67,6 +89,29 @@
 				if (response.status == 'FRIEND_ADDED')
 					$("#friendlist").append('<tr class="frienditem" id="'+friendname+'"><td><p>'+friendname+'</p></td><td><button type="button" onClick="removeFriend(\''+friendname+'\')" class="btn btn-primary">Remove</button></td></tr>');
 				else if (response.status == 'NO_SUCH_USER')
+					alert("There is no such user, make sure that you have spelled the name correctly and try again.");
+				else console.log("Status: "+response.status);
+				},
+			error: function (response) {} });
+		*/
+	function addFriendValue(name) {
+		friendname = name;
+
+		$.ajax({url: '{{config.api_url}}/api/friends',
+			type: 'POST',
+			crossDomain: true,
+			data: JSON.stringify({
+				username: "{{session['user']}}",
+				session: "{{session['session']}}",
+				action: 'ADD',
+				friend: friendname}),
+			contentType: "application/json",
+			dataType: "json",
+			success: function (response) {
+				if (response.status == 'FRIEND_ADDED') {
+					$("#friendlist").append('<tr class="frienditem" id="'+friendname+'"><td><p>'+friendname+'</p></td><td><button type="button" onClick="removeFriend(\''+friendname+'\')" class="btn btn-primary">Remove</button></td></tr>');
+					location.reload();
+				} else if (response.status == 'NO_SUCH_USER')
 					alert("There is no such user, make sure that you have spelled the name correctly and try again.");
 				else console.log("Status: "+response.status);
 				},
