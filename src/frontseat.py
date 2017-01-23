@@ -68,25 +68,16 @@ def before_request():
 @login_required
 def index():
     """ Render home screen. """
-    data = {'username':session['user'], 'session':session['session'], 'action':'LOUNGES'}
+    data = {'username':session['user'], 'session':session['session'], 'action':'GET'}
     response = seated.send_post(config, '/api/friends', data)
-    confirmed = []
-    unconfirmed = []
-    if response['status'] == 'NO_FRIENDS':
-    	pass
-    else:
+    friends = []
+    pending  = []
+
+    if response['status'] == 'QUERY_OK':
 	    friends = response['friends']
-	    for friend in friends:
-		    data = {'username':session['user'], 'session':session['session'], 'owner':friend, 'action':'GET'}
-		    response = seated.send_post(config, '/api/playlist', data)
-		    if response['status'] == 'NOT_FRIENDS':
-			    unconfirmed += [friend]
-		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
-			    confirmed += [friend]
+	    pending = response['pending']
 
-
-
-    return render_template('home.html', title='Home', friends=confirmed, unconfirmed = unconfirmed)
+    return render_template('home.html', title='Home', friends=friends, unconfirmed=pending)
 
 
 @app.route('/lounge')
@@ -174,7 +165,7 @@ def upload(playlist_id):
 		if (r.text == 'UPLOAD_OK'):
 			flash("Your file was uploaded!", 'success')
 		else:
-			flash ("Upload failed.", 'danger')
+			flash ("Upload failed, the file may have been of a non-ogg format.", 'danger')
 	return redirect(url_for('music', playlist_id=playlist_id))
 
 @app.route('/music/<int:playlist_id>')
@@ -310,25 +301,13 @@ class LoginForm(Form):
 @app.route('/friends', methods=['GET'])
 @login_required
 def friends ():
-	data = {'username':session['user'], 'session':session['session'], 'action':'LOUNGES'}
+	data = {'username':session['user'], 'session':session['session'], 'action':'GET'}
 	response = seated.send_post(config, '/api/friends', data)
 
 	if response['status'] == 'QUERY_OK':
-	    friends = response['friends']
-
-	    confirmed = []
-	    unconfirmed = []
-	    friends = response['friends']
-	    print friends
-	    for friend in friends:
-		    data = {'username':session['user'], 'session':session['session'], 'owner':friend, 'action':'GET'}
-		    response = seated.send_post(config, '/api/playlist', data)
-		    if response['status'] == 'NOT_FRIENDS':
-			    unconfirmed += [friend]
-		    elif response['status'] == 'QUERY_FAILED' or response['status'] == 'NO_PLAYLISTS' or response['status'] == 'QUERY_OK':
-			    confirmed += [friend]
-
-	    return render_template('friends.html', friends=confirmed, pending=unconfirmed)
+	    confirmed = response['friends']
+	    pending = response['pending']
+	    return render_template('friends.html', friends=confirmed, pending=pending)
 
 	elif response['status'] == 'NO_FRIENDS':
 		flash('You have no friends yet, add some below!', 'info')
